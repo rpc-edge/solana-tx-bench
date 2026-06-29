@@ -1,0 +1,34 @@
+test_id: null
+keypair_path: "./bench-keypair.json"
+rpc_url: "https://api.mainnet-beta.solana.com"
+artifact_dir: "artifacts"
+count: 1
+duration_seconds: null
+rate_per_second: null
+lamports: 500
+compute_unit_limit: 20000
+compute_unit_price_microlamports: 0
+memo_prefix: null
+max_spend_lamports: 10000
+timeout_ms: 2000
+
+providers:
+  - name: public-rpc
+    kind: solana_rpc
+    endpoint: "https://api.mainnet-beta.solana.com"
+    headers: {}
+
+  - name: rpcedge-raw-http
+    kind: rpcedge_raw_http
+    endpoint: "https://relay.rpcedge.com/v1/transactions"
+    api_key_env: "RPCEDGE_API_KEY"
+    headers: {}
+
+  - name: rpcedge-route-aware-http
+    kind: rpcedge_route_aware_http
+    endpoint: "https://relay.rpcedge.com/v1/submit"
+    api_key_env: "RPCEDGE_API_KEY"
+    route_mode: only
+    routes:
+      - tpu_quic
+    headers: {}

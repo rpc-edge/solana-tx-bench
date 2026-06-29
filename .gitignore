@@ -1,0 +1,6 @@
+/target/
+/artifacts/
+/.env
+*.keypair.json
+*.pem
+*.log
