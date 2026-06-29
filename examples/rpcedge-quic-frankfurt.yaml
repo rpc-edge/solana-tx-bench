@@ -1,0 +1,20 @@
+test_id: null
+keypair_path: "/home/sol/solana-tx-bench/secrets/bench-keypair.json"
+rpc_url: "http://127.0.0.1:8899"
+artifact_dir: "/home/sol/solana-tx-bench/artifacts"
+count: 3
+duration_seconds: null
+rate_per_second: null
+lamports: 500
+compute_unit_limit: 5000
+compute_unit_price_microlamports: 0
+memo_prefix: null
+max_spend_lamports: 100000
+timeout_ms: 2000
+
+providers:
+  - name: rpcedge-quic-frankfurt
+    kind: rpcedge_quic_raw_tx
+    endpoint: "127.0.0.1:4433"
+    api_key_env: "RPCEDGE_API_KEY"
+    server_name: "relay.rpcedge.com"
