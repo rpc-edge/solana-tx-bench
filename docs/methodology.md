@@ -74,6 +74,26 @@ downstream analyzer that joins:
 That separation lets external users compare provider ACK behavior even when
 they do not have private validator telemetry.
 
+## Matched Observation Reports
+
+Several existing Solana benchmark tools use matched-signature comparisons: send
+or observe the same transaction stream from multiple sources, then report which
+source saw each signature first. This repo should support that style through an
+optional observer layer, not by making the base runner depend on one private
+stream.
+
+Good matched-observation outputs:
+
+- matched transaction count;
+- unmatched count per source;
+- win rate by source;
+- average delta;
+- p75/p90/p95/p99 deltas;
+- landed slot and slot index when available.
+
+The base `samples.ndjson` file already includes the stable join key:
+`signature`.
+
 ## Interpretation Rules
 
 - Provider ACK latency is not landing latency.
@@ -83,3 +103,5 @@ they do not have private validator telemetry.
   adapter.
 - Results should state transaction count, rate, priority fee, provider config,
   cluster, and run time.
+- Provider comparison claims should state whether they are ACK-only,
+  confirmation-based, processed-observation-based, or first-shred/deshred-based.

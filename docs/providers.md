@@ -60,6 +60,24 @@ candidate examples:
 - Astralane;
 - Helius Sender;
 - Harmonic.
+- bloXroute;
+- Nozomi / Temporal-style senders;
+- TPU sender proxies such as Yellowstone Jet.
 
 Provider-specific fee floors, minimum priority fees, payload limits, preflight
 rules, and bundle rules must be documented with the adapter.
+
+## Adapter Design Notes From Related Tools
+
+Provider adapters should keep protocol-specific behavior isolated:
+
+- HTTP JSON-RPC senders should expose preflight, retry, and encoding settings.
+- Raw HTTP senders should record request size and status code.
+- QUIC senders should document connection reuse, stream model, and whether the
+  provider returns an ACK or is fire-and-forget.
+- Bundle senders should document bundle size limits and tip requirements.
+- Provider-specific tip builders should be opt-in and visible in config.
+
+When comparing providers concurrently, prefer one funded sender keypair per
+provider. Shared fee-payer accounts can serialize or otherwise couple traffic
+and make route comparisons less clean.

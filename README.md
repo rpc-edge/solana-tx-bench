@@ -82,6 +82,11 @@ See [examples/bench.example.yaml](examples/bench.example.yaml).
 
 See [docs/methodology.md](docs/methodology.md).
 
+## Related Work
+
+See [docs/related-work.md](docs/related-work.md) for how this repo compares to
+existing Solana sender and stream benchmark tools.
+
 ## Artifact Schema
 
 See [docs/artifacts.md](docs/artifacts.md).
