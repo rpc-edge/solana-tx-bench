@@ -38,6 +38,7 @@ signature and observed slot.
 - `solana_rpc`: standard JSON-RPC `sendTransaction`.
 - `rpcedge_raw_http`: raw transaction bytes over HTTP.
 - `rpcedge_route_aware_http`: RPCEdge route-aware JSON submit endpoint.
+- `rpcedge_quic_raw_tx`: raw transaction bytes over persistent RPCEdge QUIC.
 
 Planned adapter examples:
 
@@ -89,6 +90,20 @@ This sends at most one transaction for each observed contiguous leader run,
 signing each transaction with a fresh blockhash. It is the preferred first
 benchmark shape because it avoids spammy fixed-rate traffic and naturally
 samples different leaders over the run window.
+
+For a QUIC-only RPCEdge sender benchmark, configure a single provider:
+
+```yaml
+providers:
+  - name: rpcedge-quic-frankfurt
+    kind: rpcedge_quic_raw_tx
+    endpoint: "185.191.118.181:4433"
+    api_key_env: "RPCEDGE_API_KEY"
+    server_name: "relay.rpcedge.com"
+```
+
+Use `run` for a tiny fixed-count canary, then `run-leader-paced` for the
+leader/cohort benchmark.
 
 Leader-paced outputs add:
 

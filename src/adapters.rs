@@ -3,9 +3,10 @@ use async_trait::async_trait;
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 use chrono::{DateTime, Utc};
 use reqwest::StatusCode;
+use rpcedge_relay_client::{QuicRelayClient, QuicRelayClientConfig};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::{collections::HashMap, time::Duration};
+use std::{collections::HashMap, net::SocketAddr, time::Duration};
 
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "snake_case")]
@@ -13,6 +14,7 @@ pub enum ProviderKind {
     SolanaRpc,
     RpcedgeRawHttp,
     RpcedgeRouteAwareHttp,
+    RpcedgeQuicRawTx,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -41,6 +43,12 @@ pub enum ProviderConfig {
         #[serde(default)]
         headers: HashMap<String, String>,
     },
+    RpcedgeQuicRawTx {
+        endpoint: SocketAddr,
+        api_key_env: String,
+        #[serde(default)]
+        server_name: Option<String>,
+    },
 }
 
 impl ProviderConfig {
@@ -49,6 +57,7 @@ impl ProviderConfig {
             Self::SolanaRpc { .. } => ProviderKind::SolanaRpc,
             Self::RpcedgeRawHttp { .. } => ProviderKind::RpcedgeRawHttp,
             Self::RpcedgeRouteAwareHttp { .. } => ProviderKind::RpcedgeRouteAwareHttp,
+            Self::RpcedgeQuicRawTx { .. } => ProviderKind::RpcedgeQuicRawTx,
         }
     }
 }
@@ -158,6 +167,19 @@ pub fn build_adapter(
             headers,
             client,
         })),
+        ProviderConfig::RpcedgeQuicRawTx {
+            endpoint,
+            api_key_env,
+            server_name,
+        } => Ok(Box::new(RpcedgeQuicRawTxAdapter {
+            name,
+            endpoint,
+            api_key: std::env::var(&api_key_env)
+                .with_context(|| format!("read API key env var {api_key_env}"))?,
+            server_name,
+            timeout,
+            client: None,
+        })),
     }
 }
 
@@ -190,6 +212,15 @@ struct RpcedgeRouteAwareAdapter {
     routes: Vec<String>,
     headers: HashMap<String, String>,
     client: reqwest::Client,
+}
+
+struct RpcedgeQuicRawTxAdapter {
+    name: String,
+    endpoint: SocketAddr,
+    api_key: String,
+    server_name: Option<String>,
+    timeout: Duration,
+    client: Option<QuicRelayClient>,
 }
 
 #[async_trait]
@@ -300,6 +331,71 @@ impl ProviderAdapter for RpcedgeRouteAwareAdapter {
             parse_rpcedge_submit_response,
         )
         .await
+    }
+}
+
+#[async_trait]
+impl ProviderAdapter for RpcedgeQuicRawTxAdapter {
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn kind(&self) -> ProviderKind {
+        ProviderKind::RpcedgeQuicRawTx
+    }
+
+    async fn warmup(&mut self) -> Result<()> {
+        let mut config = QuicRelayClientConfig::new(self.endpoint, self.api_key.clone())
+            .with_timeout(self.timeout);
+        if let Some(server_name) = self.server_name.as_ref() {
+            config = config.with_server_name(server_name.clone());
+        }
+        let client = QuicRelayClient::connect(config)
+            .await
+            .map_err(|err| anyhow!("connect QUIC relay client: {err}"))?;
+        self.client = Some(client);
+        Ok(())
+    }
+
+    async fn send_transaction(&self, tx: &[u8], _ctx: &SendContext) -> ProviderAck {
+        let started = Utc::now();
+        let timer = std::time::Instant::now();
+        let Some(client) = self.client.as_ref() else {
+            return ack_error(
+                self.name(),
+                self.kind(),
+                started,
+                timer,
+                None,
+                "invalid_config",
+                "QUIC client was not warmed up",
+            );
+        };
+
+        match client.send_transaction_raw_bytes(tx).await {
+            Ok(response) => ProviderAck {
+                provider_name: self.name().to_string(),
+                provider_kind: self.kind(),
+                accepted: response.accepted,
+                provider_request_id: Some(response.request_id),
+                returned_signature: Some(response.signature),
+                status_code: None,
+                error_class: None,
+                error: None,
+                send_started_at: started,
+                send_finished_at: Utc::now(),
+                ack_latency_us: timer.elapsed().as_micros(),
+            },
+            Err(err) => ack_error(
+                self.name(),
+                self.kind(),
+                started,
+                timer,
+                None,
+                "transport_error",
+                err,
+            ),
+        }
     }
 }
 
