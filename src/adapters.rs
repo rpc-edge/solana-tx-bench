@@ -3,7 +3,10 @@ use async_trait::async_trait;
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 use chrono::{DateTime, Utc};
 use reqwest::StatusCode;
-use rpcedge_relay_client::{QuicRelayClient, QuicRelayClientConfig};
+use rpcedge_relay_client::{
+    QuicRelayClient, QuicRelayClientConfig, RelayRoute, RouteSet as RelayRouteSet,
+    RouteSetMode as RelayRouteSetMode,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::{collections::HashMap, net::SocketAddr, time::Duration};
@@ -47,6 +50,10 @@ pub enum ProviderConfig {
         endpoint: SocketAddr,
         api_key_env: String,
         #[serde(default)]
+        route_mode: RouteMode,
+        #[serde(default)]
+        routes: Vec<String>,
+        #[serde(default)]
         server_name: Option<String>,
     },
 }
@@ -80,6 +87,29 @@ impl RouteMode {
             Self::DefaultPlus => "default_plus",
             Self::DefaultMinus => "default_minus",
         }
+    }
+
+    fn as_relay_mode(self) -> RelayRouteSetMode {
+        match self {
+            Self::ServerDefault => RelayRouteSetMode::ServerDefault,
+            Self::Only => RelayRouteSetMode::Only,
+            Self::DefaultPlus => RelayRouteSetMode::DefaultPlus,
+            Self::DefaultMinus => RelayRouteSetMode::DefaultMinus,
+        }
+    }
+}
+
+fn parse_relay_route(route: &str) -> Result<RelayRoute> {
+    match route.trim() {
+        "tpu_quic" | "tpu-quic" => Ok(RelayRoute::TpuQuic),
+        "tpu_udp" | "tpu-udp" => Ok(RelayRoute::TpuUdp),
+        "harmonic_bundle" | "harmonic-bundle" => Ok(RelayRoute::HarmonicBundle),
+        "helius_sender_swqos" | "helius-sender-swqos" => Ok(RelayRoute::HeliusSenderSwqos),
+        "rpc_fallback" | "rpc-fallback" | "rpc" => Ok(RelayRoute::RpcFallback),
+        "jito_transaction" | "jito-transaction" => Ok(RelayRoute::JitoTransaction),
+        "jito_bundle" | "jito-bundle" => Ok(RelayRoute::JitoBundle),
+        "" => Err(anyhow!("empty relay route")),
+        other => Err(anyhow!("unknown relay route {other}")),
     }
 }
 
@@ -170,12 +200,19 @@ pub fn build_adapter(
         ProviderConfig::RpcedgeQuicRawTx {
             endpoint,
             api_key_env,
+            route_mode,
+            routes,
             server_name,
         } => Ok(Box::new(RpcedgeQuicRawTxAdapter {
             name,
             endpoint,
             api_key: std::env::var(&api_key_env)
                 .with_context(|| format!("read API key env var {api_key_env}"))?,
+            route_mode,
+            routes: routes
+                .iter()
+                .map(|route| parse_relay_route(route))
+                .collect::<Result<Vec<_>>>()?,
             server_name,
             timeout,
             client: None,
@@ -218,6 +255,8 @@ struct RpcedgeQuicRawTxAdapter {
     name: String,
     endpoint: SocketAddr,
     api_key: String,
+    route_mode: RouteMode,
+    routes: Vec<RelayRoute>,
     server_name: Option<String>,
     timeout: Duration,
     client: Option<QuicRelayClient>,
@@ -357,7 +396,7 @@ impl ProviderAdapter for RpcedgeQuicRawTxAdapter {
         Ok(())
     }
 
-    async fn send_transaction(&self, tx: &[u8], _ctx: &SendContext) -> ProviderAck {
+    async fn send_transaction(&self, tx: &[u8], ctx: &SendContext) -> ProviderAck {
         let started = Utc::now();
         let timer = std::time::Instant::now();
         let Some(client) = self.client.as_ref() else {
@@ -372,7 +411,15 @@ impl ProviderAdapter for RpcedgeQuicRawTxAdapter {
             );
         };
 
-        match client.send_transaction_raw_bytes(tx).await {
+        let route_set = RelayRouteSet {
+            mode: self.route_mode.as_relay_mode(),
+            routes: self.routes.clone(),
+        };
+        let request_id = Some(format!("{}-{}-{}", ctx.test_id, self.name, ctx.iteration));
+        match client
+            .send_transaction_raw_bytes_with_request_id(tx, route_set, request_id)
+            .await
+        {
             Ok(response) => ProviderAck {
                 provider_name: self.name().to_string(),
                 provider_kind: self.kind(),

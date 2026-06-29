@@ -99,6 +99,9 @@ providers:
     kind: rpcedge_quic_raw_tx
     endpoint: "185.191.118.181:4433"
     api_key_env: "RPCEDGE_API_KEY"
+    route_mode: only
+    routes:
+      - tpu_quic
     server_name: "relay.rpcedge.com"
 ```
 
