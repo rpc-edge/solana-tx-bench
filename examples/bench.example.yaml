@@ -11,6 +11,8 @@ compute_unit_price_microlamports: 0
 memo_prefix: null
 max_spend_lamports: 10000
 timeout_ms: 2000
+observation_timeout_ms: 5000
+min_observation_sources: 2
 
 providers:
   - name: public-rpc
@@ -32,3 +34,18 @@ providers:
     routes:
       - tpu_quic
     headers: {}
+
+observation_sources:
+  - name: direct-processed
+    kind: yellowstone_processed
+    endpoint: "https://yellowstone.example.com"
+    x_token_env: "YELLOWSTONE_X_TOKEN"
+
+  - name: direct-deshred
+    kind: yellowstone_deshred
+    endpoint: "https://yellowstone.example.com"
+    x_token_env: "YELLOWSTONE_X_TOKEN"
+
+  - name: local-shredstream
+    kind: raw_shredstream_udp
+    bind: "127.0.0.1:20001"

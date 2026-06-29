@@ -1,40 +1,40 @@
 # Polaris Private Enrichment
 
-This public repository should stop at generic sender artifacts. Polaris-specific
-landing and shred observations should remain private.
+This public repository should produce generic matched observation artifacts.
+Polaris-specific grouping and context should remain private.
 
 ## Join Key
 
-Use `samples.ndjson.signature`.
+Use `ObservationEvent.signature` and, where available, `ObservationEvent.slot`.
 
 ## Private Observation Flow
 
 ```text
 solana-tx-bench artifacts
-  signature, provider, provider_ack_latency_us
+  gRPC/deshred/shredstream observation events
+  matched source percentile summary
         |
         v
-private observation store
-  first deshred seen timestamp
-  processed geyser timestamp
-  landed slot
-  slot index
+private metadata store
   leader identity
   leader region/cohort
+  validator client
+  datacenter
+  customer/key dimensions
         |
         v
 private report
-  provider ACK -> first shred seen
-  provider ACK -> processed update
-  submit -> landed by leader cohort
+  observation latency by leader cohort
+  observation latency by validator client
+  observation latency by datacenter/region
+  bad leader and tail attribution
 ```
 
 ## Why This Is Private
 
-First-shred/deshred visibility depends on validator placement, stream provider
-contracts, private ClickHouse tables, and internal gateway observability. Public
-users can still reuse the benchmark by joining the signatures against their own
-observation systems.
+Leader cohort, validator client, customer dimensions, private ClickHouse tables,
+and internal gateway observability are Polaris-specific. Public users can still
+reuse the benchmark by joining signatures and slots against their own metadata.
 
 ## Suggested Private Output
 
@@ -46,16 +46,10 @@ enriched_samples.parquet
 
 Suggested fields:
 
-- public sample fields;
-- `observed_source`;
-- `first_shred_seen_at`;
-- `processed_seen_at`;
-- `landed_slot`;
-- `slot_index`;
+- public observation fields;
 - `leader_identity`;
 - `leader_region`;
 - `leader_stake_bucket`;
-- `ack_to_first_shred_us`;
-- `ack_to_processed_us`;
-- `submit_to_first_shred_us`;
-- `submit_to_processed_us`.
+- `leader_client`;
+- `leader_datacenter`;
+- `submit_to_observed_us`.

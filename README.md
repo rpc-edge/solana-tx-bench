@@ -1,27 +1,33 @@
 # solana-tx-bench
 
-Reusable Solana transaction sender benchmark.
+Reusable Solana transaction observation benchmark.
 
 The tool generates small signed mainnet transactions, submits each transaction to
-one or more configured providers, and writes reproducible artifacts for route
-latency analysis.
+one or more configured providers, and writes reproducible artifacts for
+gRPC/deshred/shredstream observation analysis.
 
 It is intentionally provider-neutral. Add a provider by implementing a sender
 adapter, not by hard-coding a benchmark path.
 
 ## What It Measures
 
-This public repo measures client-to-provider ACK latency:
+Primary measurement:
 
 ```text
-bench process
-  -> provider endpoint
-  <- accepted / rejected response
+signed transaction submitted
+  -> observed on Yellowstone processed gRPC
+  -> observed on Yellowstone deshred / SubscribeDeshred
+  -> observed on raw ShredStream-derived signatures
+  -> matched by signature
+  -> source win rate, missing rate, and percentile deltas
 ```
 
-It does not claim landing latency by itself. Landing, first-shred seen, processed
-slot, leader geography, and private deshred observations require external data
-and can be joined downstream using the transaction signature.
+Provider ACK latency is retained only as a diagnostic side channel. It is not
+the benchmark result.
+
+Private context such as leader geography, validator client, datacenter, customer
+plan, and bad-leader attribution can be joined downstream using the transaction
+signature and observed slot.
 
 ## Supported Adapters
 
@@ -58,12 +64,27 @@ export RPCEDGE_API_KEY=...
 cargo run -- run --config bench.yaml
 ```
 
-Artifacts are written under `artifact_dir/test_id/`:
+Submission diagnostics are written under `artifact_dir/test_id/`:
 
 - `manifest.json`
 - `samples.ndjson`
 - `summary.json`
 - `summary.md`
+
+Summarize matched observations from gRPC/deshred/shredstream collectors:
+
+```bash
+cargo run -- summarize-observations \
+  --test-id my-run \
+  --input observations.ndjson \
+  --output-dir artifacts/my-run \
+  --min-sources 2
+```
+
+Observation summaries:
+
+- `observation-summary.json`
+- `observation-summary.md`
 
 ## Safety Defaults
 

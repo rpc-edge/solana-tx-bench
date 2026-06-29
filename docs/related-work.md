@@ -1,7 +1,8 @@
 # Related Work
 
-This project intentionally sits between small RPC-only benchmark scripts and
-private infrastructure reports.
+This project is an observation benchmark. It should borrow sender ergonomics
+from small RPC benchmark scripts, but its core report must be matched
+gRPC/deshred/shredstream observation latency.
 
 ## bloXroute Benchmark Article
 
@@ -18,7 +19,8 @@ Caveat for this repo:
 
 - provider-written results are useful methodology references, but public claims
   need reproducible artifacts and a clear observation source;
-- this repo's base output is provider ACK latency, not landing latency.
+- this repo's base submission output is only diagnostic; benchmark claims must
+  come from matched observation events.
 
 ## dysnix/solana-test
 
@@ -38,8 +40,8 @@ Relevant subtools observed:
 
 What to borrow:
 
-- optional observer layer that can match by signature and compute landing /
-  observation latency;
+- observer layer that can match by signature and compute gRPC/deshred/
+  shredstream observation latency;
 - matched-signature win-rate reporting;
 - p75/p90/p95/p99 delta reporting;
 - sender isolation when comparing providers concurrently;
@@ -112,8 +114,8 @@ benchmark should be able to target:
 - Prometheus metrics;
 - dynamic identity and policy controls.
 
-This repo should benchmark systems like Jet through adapters rather than embed a
-full TPU sender implementation in the benchmark runner.
+This repo should benchmark systems like Jet through adapters, then evaluate the
+result by matched gRPC/deshred/shredstream observation.
 
 ## RPCFast Public Methodology
 
@@ -126,19 +128,18 @@ Useful ideas:
 - report average delta and p75/p90/p95/p99;
 - report percentage of matched transactions where one source was faster.
 
-This is exactly the style to use for optional observer/enrichment output. The
-base public artifact should keep raw samples so downstream analyzers can compute
-the same style of report.
+This is exactly the style to use for observer output. Public artifacts should
+keep raw observation events so downstream analyzers can compute the same style
+of report.
 
 ## Design Implications For This Repo
 
 The repo should include these layers:
 
-1. **Base runner, current scope:** generate signed transactions, fan them to
-   configured adapters, record provider ACK artifacts.
-2. **Public observer, future scope:** optional RPC/WebSocket/Yellowstone-style
-   signature observer for landing or confirmation timing that external users can
-   run against their own endpoints.
+1. **Base runner:** generate signed transactions, fan them to configured
+   adapters, and record submission diagnostics.
+2. **Public observer, primary scope:** gRPC/deshred/shredstream signature
+   observation with matched-source percentile reports.
 3. **Provider adapters, ongoing scope:** clean adapters for RPCEdge, Solana
    JSON-RPC, Helius, Harmonic, RPCFast, Astralane, bloXroute, and other sender
    APIs.
@@ -148,7 +149,7 @@ The repo should include these layers:
 The most important product distinction:
 
 ```text
-Public repo: reproducible benchmark samples.
-Private Polaris layer: authoritative first-shred / processed / leader-cohort
-claims.
+Public repo: reproducible matched observation samples and source percentiles.
+Private Polaris layer: leader-region, bad-leader, validator-client, customer,
+and ClickHouse cohort context.
 ```

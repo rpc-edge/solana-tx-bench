@@ -1,7 +1,14 @@
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
-use solana_tx_bench::{run_benchmark, BenchConfig};
-use std::{fs, path::PathBuf};
+use solana_tx_bench::{
+    observation_summary_markdown, run_benchmark, summarize_observations, BenchConfig,
+    ObservationEvent,
+};
+use std::{
+    fs,
+    io::{BufRead, BufReader},
+    path::PathBuf,
+};
 
 #[derive(Debug, Parser)]
 #[command(name = "solana-tx-bench")]
@@ -20,6 +27,16 @@ enum Command {
     InitConfig {
         #[arg(long, default_value = "bench.example.yaml")]
         output: PathBuf,
+    },
+    SummarizeObservations {
+        #[arg(long)]
+        test_id: String,
+        #[arg(long, required = true)]
+        input: Vec<PathBuf>,
+        #[arg(long)]
+        output_dir: PathBuf,
+        #[arg(long, default_value_t = 2)]
+        min_sources: usize,
     },
 }
 
@@ -55,8 +72,53 @@ async fn main() -> Result<()> {
                 .with_context(|| format!("write {}", output.display()))?;
             println!("wrote {}", output.display());
         }
+        Command::SummarizeObservations {
+            test_id,
+            input,
+            output_dir,
+            min_sources,
+        } => {
+            let events = read_observation_events(&input)?;
+            let summary = summarize_observations(&test_id, &events, min_sources);
+            fs::create_dir_all(&output_dir)
+                .with_context(|| format!("create {}", output_dir.display()))?;
+            fs::write(
+                output_dir.join("observation-summary.json"),
+                serde_json::to_vec_pretty(&summary)?,
+            )
+            .with_context(|| format!("write {}", output_dir.display()))?;
+            fs::write(
+                output_dir.join("observation-summary.md"),
+                observation_summary_markdown(&summary),
+            )
+            .with_context(|| format!("write {}", output_dir.display()))?;
+            println!("observations={}", summary.total_observations);
+            println!("matched_signatures={}", summary.matched_signatures);
+            println!(
+                "summary={}",
+                output_dir.join("observation-summary.md").display()
+            );
+        }
     }
     Ok(())
+}
+
+fn read_observation_events(paths: &[PathBuf]) -> Result<Vec<ObservationEvent>> {
+    let mut events = Vec::new();
+    for path in paths {
+        let file = fs::File::open(path).with_context(|| format!("open {}", path.display()))?;
+        let reader = BufReader::new(file);
+        for (line_no, line) in reader.lines().enumerate() {
+            let line = line.with_context(|| format!("read {}:{}", path.display(), line_no + 1))?;
+            if line.trim().is_empty() {
+                continue;
+            }
+            let event = serde_json::from_str::<ObservationEvent>(&line)
+                .with_context(|| format!("parse {}:{}", path.display(), line_no + 1))?;
+            events.push(event);
+        }
+    }
+    Ok(events)
 }
 
 fn fmt(value: Option<u128>) -> String {

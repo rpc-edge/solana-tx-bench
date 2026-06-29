@@ -9,6 +9,9 @@ pub struct BenchConfig {
     pub rpc_url: String,
     pub artifact_dir: PathBuf,
     pub providers: Vec<ProviderSpec>,
+    pub observation_sources: Vec<ObservationSourceSpec>,
+    pub observation_timeout_ms: u64,
+    pub min_observation_sources: usize,
     pub count: Option<usize>,
     pub duration_seconds: Option<u64>,
     pub rate_per_second: Option<f64>,
@@ -28,6 +31,9 @@ impl Default for BenchConfig {
             rpc_url: "https://api.mainnet-beta.solana.com".to_string(),
             artifact_dir: PathBuf::from("artifacts"),
             providers: Vec::new(),
+            observation_sources: Vec::new(),
+            observation_timeout_ms: 5_000,
+            min_observation_sources: 2,
             count: Some(1),
             duration_seconds: None,
             rate_per_second: None,
@@ -46,4 +52,32 @@ pub struct ProviderSpec {
     pub name: String,
     #[serde(flatten)]
     pub config: crate::adapters::ProviderConfig,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct ObservationSourceSpec {
+    pub name: String,
+    #[serde(flatten)]
+    pub config: ObservationSourceConfig,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum ObservationSourceConfig {
+    YellowstoneProcessed {
+        endpoint: String,
+        #[serde(default)]
+        x_token_env: Option<String>,
+    },
+    YellowstoneDeshred {
+        endpoint: String,
+        #[serde(default)]
+        x_token_env: Option<String>,
+    },
+    RawShredstreamUdp {
+        bind: String,
+    },
+    NdjsonImport {
+        path: PathBuf,
+    },
 }

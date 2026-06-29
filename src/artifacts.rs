@@ -1,4 +1,7 @@
-use crate::adapters::{ProviderAck, ProviderKind};
+use crate::{
+    adapters::{ProviderAck, ProviderKind},
+    observations::ObservationSourceKind,
+};
 use chrono::{DateTime, SecondsFormat, Utc};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -23,12 +26,19 @@ pub struct BenchManifest {
     pub memo_prefix: String,
     pub max_spend_lamports: Option<u64>,
     pub providers: Vec<ManifestProvider>,
+    pub observation_sources: Vec<ManifestObservationSource>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ManifestProvider {
     pub name: String,
     pub kind: ProviderKind,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManifestObservationSource {
+    pub name: String,
+    pub kind: ObservationSourceKind,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,9 +1,11 @@
 use crate::{
     adapters::{build_adapter, SendContext},
     artifacts::{
-        summarize, ArtifactWriter, BenchManifest, BenchSample, BenchSummary, ManifestProvider,
+        summarize, ArtifactWriter, BenchManifest, BenchSample, BenchSummary,
+        ManifestObservationSource, ManifestProvider,
     },
-    config::BenchConfig,
+    config::{BenchConfig, ObservationSourceConfig},
+    observations::ObservationSourceKind,
     tx::{build_transactions, load_keypair, TxBuildConfig},
 };
 use anyhow::{bail, Context, Result};
@@ -77,6 +79,14 @@ pub async fn run_benchmark(config: BenchConfig) -> Result<BenchRunOutput> {
                 kind: spec.config.kind(),
             })
             .collect(),
+        observation_sources: config
+            .observation_sources
+            .iter()
+            .map(|spec| ManifestObservationSource {
+                name: spec.name.clone(),
+                kind: observation_source_kind(&spec.config),
+            })
+            .collect(),
     };
 
     let mut writer = ArtifactWriter::create(&config.artifact_dir, &test_id)?;
@@ -147,6 +157,21 @@ fn resolve_tx_count(config: &BenchConfig) -> Result<usize> {
         (Some(_), Some(_), None) => bail!("duration_seconds is mutually exclusive with count"),
         (None, Some(_), None) => bail!("duration_seconds requires rate_per_second"),
         (None, None, _) => Ok(1),
+    }
+}
+
+fn observation_source_kind(config: &ObservationSourceConfig) -> ObservationSourceKind {
+    match config {
+        ObservationSourceConfig::YellowstoneProcessed { .. } => {
+            ObservationSourceKind::YellowstoneProcessed
+        }
+        ObservationSourceConfig::YellowstoneDeshred { .. } => {
+            ObservationSourceKind::YellowstoneDeshred
+        }
+        ObservationSourceConfig::RawShredstreamUdp { .. } => {
+            ObservationSourceKind::RawShredstreamUdp
+        }
+        ObservationSourceConfig::NdjsonImport { .. } => ObservationSourceKind::NdjsonImport,
     }
 }
 
