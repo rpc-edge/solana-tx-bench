@@ -57,7 +57,8 @@ round for that transaction and can include concurrent fanout effects.
 
 ## Observation Events
 
-Observation collectors should emit newline-delimited `ObservationEvent` JSON.
+The RPCEdge collector and any external observation collectors should emit
+newline-delimited `ObservationEvent` JSON.
 
 Fields:
 
@@ -65,8 +66,8 @@ Fields:
 - `test_id`
 - `signature`
 - `source_name`
-- `source_kind`: `yellowstone_processed`, `yellowstone_deshred`,
-  `raw_shredstream_udp`, or `ndjson_import`
+- `source_kind`: `yellowstone_processed`, `yellowstone_deshred`, or
+  `ndjson_import`
 - `observed_at`
 - `submitted_at`
 - `slot`

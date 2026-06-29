@@ -1,8 +1,8 @@
 # Methodology
 
 This benchmark is designed to compare transaction observation latency across
-gRPC/deshred/shredstream sources, then optionally enrich those observations with
-private infrastructure context.
+Yellowstone processed and SubscribeDeshred sources, then optionally enrich
+those observations with private infrastructure context.
 
 ## Measurement Boundary
 
@@ -11,7 +11,7 @@ Primary public artifact boundary:
 ```text
 signed transaction generated locally
   -> configured provider adapter
-  -> observed by configured gRPC/deshred/shredstream sources
+  -> observed by RPCEdge Yellowstone processed and SubscribeDeshred
   -> matched by signature
   -> source percentile and win-rate report
 ```
@@ -73,15 +73,28 @@ computed by a downstream analyzer that joins:
 - landed slot / slot index observations;
 - leader schedule and validator metadata;
 
-That separation lets external users compare gRPC/deshred/shredstream
-observation behavior even when they do not have Polaris-private validator
-metadata.
+That separation lets external users compare processed-vs-deshred observation
+behavior even when they do not have Polaris-private validator metadata.
 
 ## Matched Observation Reports
 
 The core benchmark uses matched-signature comparisons: send
 or observe the same transaction stream from multiple sources, then report which
 source saw each signature first.
+
+The first live collector is deliberately narrow:
+
+```text
+RPCEdge Yellowstone processed Subscribe
+RPCEdge Yellowstone SubscribeDeshred
+```
+
+Both are read from the same endpoint and token via `.env`:
+
+```text
+RPCEDGE_GRPC_URL=...
+YELLOWSTONE_X_TOKEN=...
+```
 
 Good matched-observation outputs:
 
@@ -99,7 +112,7 @@ Observation events include the stable join key: `signature`.
 - Provider ACK latency is not landing latency and is not the benchmark result.
 - Accepted by a provider does not mean landed.
 - Lowest ACK provider is not always best landed provider.
-- The primary benchmark report is matched gRPC/deshred/shredstream observation.
+- The primary benchmark report is matched processed/deshred observation.
 - Provider-specific fees, tips, and preflight behavior must be documented per
   adapter.
 - Results should state transaction count, rate, priority fee, provider config,

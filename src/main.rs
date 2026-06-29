@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use solana_tx_bench::{
-    observation_summary_markdown, run_benchmark, summarize_observations, BenchConfig,
-    ObservationEvent,
+    collect_rpcedge_observations, observation_summary_markdown, run_benchmark,
+    summarize_observations, BenchConfig, ObservationEvent, RpcEdgeCollectConfig,
 };
 use std::{
     fs,
@@ -28,6 +28,22 @@ enum Command {
         #[arg(long, default_value = "bench.example.yaml")]
         output: PathBuf,
     },
+    CollectRpcedge {
+        #[arg(long)]
+        test_id: Option<String>,
+        #[arg(long, env = "RPCEDGE_GRPC_URL")]
+        endpoint: String,
+        #[arg(long, env = "YELLOWSTONE_X_TOKEN")]
+        x_token: Option<String>,
+        #[arg(long)]
+        output_dir: Option<PathBuf>,
+        #[arg(long, default_value_t = 120)]
+        duration_seconds: u64,
+        #[arg(long, value_delimiter = ',')]
+        account_include: Vec<String>,
+        #[arg(long, default_value_t = 2)]
+        min_sources: usize,
+    },
     SummarizeObservations {
         #[arg(long)]
         test_id: String,
@@ -42,6 +58,7 @@ enum Command {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let _ = dotenvy::dotenv();
     let cli = Cli::parse();
     match cli.command {
         Command::Run { config } => {
@@ -71,6 +88,40 @@ async fn main() -> Result<()> {
             fs::write(&output, include_str!("../examples/bench.example.yaml"))
                 .with_context(|| format!("write {}", output.display()))?;
             println!("wrote {}", output.display());
+        }
+        Command::CollectRpcedge {
+            test_id,
+            endpoint,
+            x_token,
+            output_dir,
+            duration_seconds,
+            account_include,
+            min_sources,
+        } => {
+            let test_id = test_id.unwrap_or_else(|| {
+                format!(
+                    "rpcedge-observe-{}",
+                    chrono::Utc::now().format("%Y%m%dT%H%M%SZ")
+                )
+            });
+            let output_dir =
+                output_dir.unwrap_or_else(|| PathBuf::from("artifacts").join(&test_id));
+            let output = collect_rpcedge_observations(RpcEdgeCollectConfig {
+                test_id,
+                endpoint,
+                x_token,
+                output_dir,
+                duration: std::time::Duration::from_secs(duration_seconds),
+                account_include,
+                min_sources,
+            })
+            .await?;
+            println!("test_id={}", output.test_id);
+            println!("output_dir={}", output.output_dir.display());
+            println!("observations={}", output.total_observations);
+            println!("matched_signatures={}", output.matched_signatures);
+            println!("observations_file={}", output.observations_path.display());
+            println!("summary={}", output.summary_path.display());
         }
         Command::SummarizeObservations {
             test_id,

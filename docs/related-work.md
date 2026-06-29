@@ -2,7 +2,7 @@
 
 This project is an observation benchmark. It should borrow sender ergonomics
 from small RPC benchmark scripts, but its core report must be matched
-gRPC/deshred/shredstream observation latency.
+Yellowstone processed and SubscribeDeshred observation latency.
 
 ## bloXroute Benchmark Article
 
@@ -40,8 +40,8 @@ Relevant subtools observed:
 
 What to borrow:
 
-- observer layer that can match by signature and compute gRPC/deshred/
-  shredstream observation latency;
+- observer layer that can match by signature and compute processed/deshred
+  observation latency;
 - matched-signature win-rate reporting;
 - p75/p90/p95/p99 delta reporting;
 - sender isolation when comparing providers concurrently;
@@ -115,7 +115,7 @@ benchmark should be able to target:
 - dynamic identity and policy controls.
 
 This repo should benchmark systems like Jet through adapters, then evaluate the
-result by matched gRPC/deshred/shredstream observation.
+result by matched processed/deshred observation.
 
 ## RPCFast Public Methodology
 
@@ -138,8 +138,9 @@ The repo should include these layers:
 
 1. **Base runner:** generate signed transactions, fan them to configured
    adapters, and record submission diagnostics.
-2. **Public observer, primary scope:** gRPC/deshred/shredstream signature
-   observation with matched-source percentile reports.
+2. **Public observer, primary scope:** RPCEdge processed gRPC + SubscribeDeshred
+   signature observation with matched-source percentile reports. Other sources
+   should be added only when they materially improve the report.
 3. **Provider adapters, ongoing scope:** clean adapters for RPCEdge, Solana
    JSON-RPC, Helius, Harmonic, RPCFast, Astralane, bloXroute, and other sender
    APIs.

@@ -4,10 +4,15 @@ Reusable Solana transaction observation benchmark.
 
 The tool generates small signed mainnet transactions, submits each transaction to
 one or more configured providers, and writes reproducible artifacts for
-gRPC/deshred/shredstream observation analysis.
+Yellowstone processed and SubscribeDeshred observation analysis.
 
 It is intentionally provider-neutral. Add a provider by implementing a sender
 adapter, not by hard-coding a benchmark path.
+
+RPCEdge links:
+
+- Website: https://rpcedge.com
+- Docs: https://docs.rpcedge.com
 
 ## What It Measures
 
@@ -17,7 +22,6 @@ Primary measurement:
 signed transaction submitted
   -> observed on Yellowstone processed gRPC
   -> observed on Yellowstone deshred / SubscribeDeshred
-  -> observed on raw ShredStream-derived signatures
   -> matched by signature
   -> source win rate, missing rate, and percentile deltas
 ```
@@ -71,13 +75,12 @@ Submission diagnostics are written under `artifact_dir/test_id/`:
 - `summary.json`
 - `summary.md`
 
-Summarize matched observations from gRPC/deshred/shredstream collectors:
+Collect matched observations from RPCEdge Yellowstone processed + SubscribeDeshred:
 
 ```bash
-cargo run -- summarize-observations \
+cargo run -- collect-rpcedge \
   --test-id my-run \
-  --input observations.ndjson \
-  --output-dir artifacts/my-run \
+  --duration-seconds 120 \
   --min-sources 2
 ```
 

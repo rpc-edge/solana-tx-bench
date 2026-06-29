@@ -7,7 +7,6 @@ use std::collections::{BTreeMap, BTreeSet};
 pub enum ObservationSourceKind {
     YellowstoneProcessed,
     YellowstoneDeshred,
-    RawShredstreamUdp,
     NdjsonImport,
 }
 
@@ -317,26 +316,26 @@ mod tests {
         let events = vec![
             event(
                 "sig-a",
-                "shredstream",
-                ObservationSourceKind::RawShredstreamUdp,
-                1_000,
-            ),
-            event(
-                "sig-a",
                 "deshred",
                 ObservationSourceKind::YellowstoneDeshred,
-                2_000,
+                1_000,
             ),
             event(
                 "sig-a",
                 "processed",
                 ObservationSourceKind::YellowstoneProcessed,
+                2_000,
+            ),
+            event(
+                "sig-a",
+                "imported",
+                ObservationSourceKind::NdjsonImport,
                 5_000,
             ),
             event(
                 "sig-b",
-                "shredstream",
-                ObservationSourceKind::RawShredstreamUdp,
+                "deshred",
+                ObservationSourceKind::YellowstoneDeshred,
                 3_000,
             ),
             event(
@@ -347,29 +346,29 @@ mod tests {
             ),
             event(
                 "sig-c",
-                "shredstream",
-                ObservationSourceKind::RawShredstreamUdp,
+                "deshred",
+                ObservationSourceKind::YellowstoneDeshred,
                 7_000,
             ),
         ];
 
         let summary = summarize_observations("test", &events, 2);
         assert_eq!(summary.matched_signatures, 2);
-        let raw = summary
-            .source_summaries
-            .iter()
-            .find(|source| source.source_name == "shredstream")
-            .expect("raw summary");
-        assert_eq!(raw.observed, 2);
-        assert_eq!(raw.first_seen, 2);
-        assert_eq!(raw.missing_from_matched, 0);
-
         let deshred = summary
             .source_summaries
             .iter()
             .find(|source| source.source_name == "deshred")
             .expect("deshred summary");
-        assert_eq!(deshred.observed, 1);
-        assert_eq!(deshred.missing_from_matched, 1);
+        assert_eq!(deshred.observed, 2);
+        assert_eq!(deshred.first_seen, 2);
+        assert_eq!(deshred.missing_from_matched, 0);
+
+        let imported = summary
+            .source_summaries
+            .iter()
+            .find(|source| source.source_name == "imported")
+            .expect("imported summary");
+        assert_eq!(imported.observed, 1);
+        assert_eq!(imported.missing_from_matched, 1);
     }
 }

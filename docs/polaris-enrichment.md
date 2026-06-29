@@ -11,7 +11,7 @@ Use `ObservationEvent.signature` and, where available, `ObservationEvent.slot`.
 
 ```text
 solana-tx-bench artifacts
-  gRPC/deshred/shredstream observation events
+  processed/deshred observation events
   matched source percentile summary
         |
         v
