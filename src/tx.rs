@@ -75,11 +75,7 @@ pub fn build_transactions_with_blockhash(
     let mut out = Vec::with_capacity(count);
     let mut estimated_total = 0_u64;
     for iteration in 0..count {
-        let estimated_spend = estimate_spend_lamports(
-            config.compute_unit_limit,
-            config.compute_unit_price_microlamports,
-            0,
-        );
+        let estimated_spend = estimated_transaction_spend(config);
         if let Some(max) = max_spend_lamports {
             if estimated_total.saturating_add(estimated_spend) > max {
                 bail!(
@@ -88,40 +84,59 @@ pub fn build_transactions_with_blockhash(
                 );
             }
         }
-        let memo = format!("{}:{iteration}", config.memo_prefix);
-        let mut instructions = Vec::with_capacity(4);
-        instructions.push(ComputeBudgetInstruction::set_compute_unit_limit(
-            config.compute_unit_limit,
-        ));
-        if config.compute_unit_price_microlamports > 0 {
-            instructions.push(ComputeBudgetInstruction::set_compute_unit_price(
-                config.compute_unit_price_microlamports,
-            ));
-        }
-        instructions.push(system_instruction::transfer(
-            &payer.pubkey(),
-            &payer.pubkey(),
-            config.lamports,
-        ));
-        instructions.push(memo_instruction(&memo)?);
-        let tx = Transaction::new_signed_with_payer(
-            &instructions,
-            Some(&payer.pubkey()),
-            &[payer],
-            blockhash,
-        );
-        let raw = bincode::serialize(&tx).context("serialize transaction")?;
-        let base64 = STANDARD.encode(&raw);
-        out.push(BenchTx {
-            iteration,
-            signature: tx.signatures[0],
-            raw,
-            base64,
-            estimated_spend_lamports: estimated_spend,
-        });
+        out.push(build_transaction_with_blockhash(
+            config, payer, iteration, blockhash,
+        )?);
         estimated_total = estimated_total.saturating_add(estimated_spend);
     }
     Ok(out)
+}
+
+pub fn build_transaction_with_blockhash(
+    config: &TxBuildConfig,
+    payer: &Keypair,
+    iteration: usize,
+    blockhash: Hash,
+) -> Result<BenchTx> {
+    let memo = format!("{}:{iteration}", config.memo_prefix);
+    let mut instructions = Vec::with_capacity(4);
+    instructions.push(ComputeBudgetInstruction::set_compute_unit_limit(
+        config.compute_unit_limit,
+    ));
+    if config.compute_unit_price_microlamports > 0 {
+        instructions.push(ComputeBudgetInstruction::set_compute_unit_price(
+            config.compute_unit_price_microlamports,
+        ));
+    }
+    instructions.push(system_instruction::transfer(
+        &payer.pubkey(),
+        &payer.pubkey(),
+        config.lamports,
+    ));
+    instructions.push(memo_instruction(&memo)?);
+    let tx = Transaction::new_signed_with_payer(
+        &instructions,
+        Some(&payer.pubkey()),
+        &[payer],
+        blockhash,
+    );
+    let raw = bincode::serialize(&tx).context("serialize transaction")?;
+    let base64 = STANDARD.encode(&raw);
+    Ok(BenchTx {
+        iteration,
+        signature: tx.signatures[0],
+        raw,
+        base64,
+        estimated_spend_lamports: estimated_transaction_spend(config),
+    })
+}
+
+pub fn estimated_transaction_spend(config: &TxBuildConfig) -> u64 {
+    estimate_spend_lamports(
+        config.compute_unit_limit,
+        config.compute_unit_price_microlamports,
+        0,
+    )
 }
 
 fn memo_instruction(memo: &str) -> Result<Instruction> {

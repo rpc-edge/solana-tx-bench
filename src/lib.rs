@@ -2,6 +2,7 @@ pub mod adapters;
 pub mod artifacts;
 pub mod collectors;
 pub mod config;
+pub mod leader_paced;
 pub mod observations;
 pub mod runner;
 pub mod tx;
@@ -12,6 +13,9 @@ pub use adapters::{
 pub use artifacts::{BenchManifest, BenchSample, BenchSummary};
 pub use collectors::{collect_rpcedge_observations, CollectRunOutput, RpcEdgeCollectConfig};
 pub use config::{BenchConfig, ProviderSpec};
+pub use leader_paced::{
+    run_leader_paced, LeaderPacedOptions, LeaderPacedRunOutput, RpcEdgeLeaderCollector,
+};
 pub use observations::{
     observation_summary_markdown, summarize_observations, MatchedObservationSummary,
     ObservationEvent, ObservationSourceKind, SourceObservationSummary,

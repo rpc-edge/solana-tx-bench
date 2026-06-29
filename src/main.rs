@@ -1,8 +1,9 @@
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use solana_tx_bench::{
-    collect_rpcedge_observations, observation_summary_markdown, run_benchmark,
-    summarize_observations, BenchConfig, ObservationEvent, RpcEdgeCollectConfig,
+    collect_rpcedge_observations, observation_summary_markdown, run_benchmark, run_leader_paced,
+    summarize_observations, BenchConfig, LeaderPacedOptions, ObservationEvent,
+    RpcEdgeCollectConfig, RpcEdgeLeaderCollector,
 };
 use std::{
     fs,
@@ -23,6 +24,30 @@ enum Command {
     Run {
         #[arg(long)]
         config: PathBuf,
+    },
+    RunLeaderPaced {
+        #[arg(long)]
+        config: PathBuf,
+        #[arg(long, default_value_t = 300)]
+        duration_seconds: u64,
+        #[arg(long, default_value_t = 1)]
+        txs_per_leader_run: usize,
+        #[arg(long, default_value_t = 12)]
+        lookbehind_slots: u64,
+        #[arg(long, default_value_t = 64)]
+        lookahead_slots: u64,
+        #[arg(long, default_value_t = 150)]
+        poll_ms: u64,
+        #[arg(long)]
+        collect_rpcedge: bool,
+        #[arg(long, env = "RPCEDGE_GRPC_URL")]
+        rpcedge_endpoint: Option<String>,
+        #[arg(long, env = "YELLOWSTONE_X_TOKEN")]
+        x_token: Option<String>,
+        #[arg(long, default_value_t = 30)]
+        observe_extra_seconds: u64,
+        #[arg(long, default_value_t = 2)]
+        min_sources: usize,
     },
     InitConfig {
         #[arg(long, default_value = "bench.example.yaml")]
@@ -81,6 +106,72 @@ async fn main() -> Result<()> {
                     fmt(item.p90_us),
                     fmt(item.p99_us),
                     fmt(item.max_us),
+                );
+            }
+        }
+        Command::RunLeaderPaced {
+            config,
+            duration_seconds,
+            txs_per_leader_run,
+            lookbehind_slots,
+            lookahead_slots,
+            poll_ms,
+            collect_rpcedge,
+            rpcedge_endpoint,
+            x_token,
+            observe_extra_seconds,
+            min_sources,
+        } => {
+            let text = fs::read_to_string(&config)
+                .with_context(|| format!("read {}", config.display()))?;
+            let config: BenchConfig = serde_yaml::from_str(&text)
+                .with_context(|| format!("parse {}", config.display()))?;
+            let rpcedge = if collect_rpcedge {
+                Some(RpcEdgeLeaderCollector {
+                    endpoint: rpcedge_endpoint.context(
+                        "--rpcedge-endpoint or RPCEDGE_GRPC_URL is required with --collect-rpcedge",
+                    )?,
+                    x_token,
+                    min_sources,
+                })
+            } else {
+                None
+            };
+            let output = run_leader_paced(
+                config,
+                LeaderPacedOptions {
+                    duration: std::time::Duration::from_secs(duration_seconds),
+                    txs_per_leader_run,
+                    lookbehind_slots,
+                    lookahead_slots,
+                    poll_interval: std::time::Duration::from_millis(poll_ms),
+                    observe_extra: std::time::Duration::from_secs(observe_extra_seconds),
+                    rpcedge,
+                },
+            )
+            .await?;
+            println!("test_id={}", output.test_id);
+            println!("run_dir={}", output.run_dir.display());
+            println!("sent_transactions={}", output.sent_transactions);
+            println!("provider_samples={}", output.provider_samples);
+            if let Some(collector) = &output.collector {
+                println!("rpcedge_observations={}", collector.total_observations);
+                println!(
+                    "rpcedge_matched_signatures={}",
+                    collector.matched_signatures
+                );
+            }
+            if let Some(summary) = &output.matched_observation_summary {
+                println!(
+                    "matched_observation_signatures={}",
+                    summary.matched_signatures
+                );
+                println!(
+                    "matched_observation_summary={}",
+                    output
+                        .run_dir
+                        .join("matched-observation-summary.md")
+                        .display()
                 );
             }
         }

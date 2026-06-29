@@ -75,6 +75,28 @@ Submission diagnostics are written under `artifact_dir/test_id/`:
 - `summary.json`
 - `summary.md`
 
+Run a leader-paced smoke test:
+
+```bash
+cargo run --release -- run-leader-paced \
+  --config bench.yaml \
+  --duration-seconds 300 \
+  --txs-per-leader-run 1 \
+  --collect-rpcedge
+```
+
+This sends at most one transaction for each observed contiguous leader run,
+signing each transaction with a fresh blockhash. It is the preferred first
+benchmark shape because it avoids spammy fixed-rate traffic and naturally
+samples different leaders over the run window.
+
+Leader-paced outputs add:
+
+- `leader-sends.ndjson`
+- `matched-observations.ndjson`
+- `matched-observation-summary.json`
+- `matched-observation-summary.md`
+
 Collect matched observations from RPCEdge Yellowstone processed + SubscribeDeshred:
 
 ```bash
@@ -120,3 +142,11 @@ See [docs/artifacts.md](docs/artifacts.md).
 See [docs/polaris-enrichment.md](docs/polaris-enrichment.md) for the intended
 private join path. That data should not be required by this public benchmark
 repo.
+
+## Report Visualization
+
+The artifacts are plain NDJSON and JSON. A Jupyter notebook that reads
+`leader-sends.ndjson`, `samples.ndjson`, and `matched-observation-summary.json`
+is a good next layer for publishing an HTML report in GitHub Pages or on the
+RPCEdge website. Keep provider ACK charts visually separate from
+processed/deshred observation charts.

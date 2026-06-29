@@ -63,6 +63,34 @@ Only increase rate after:
 - artifact persistence is clean;
 - observation collectors can join by signature.
 
+## Leader-Paced Runs
+
+For geography and leader-cohort coverage, prefer leader-paced runs over fixed
+rate runs:
+
+```bash
+cargo run --release -- run-leader-paced \
+  --config bench.yaml \
+  --duration-seconds 300 \
+  --txs-per-leader-run 1 \
+  --collect-rpcedge
+```
+
+The runner polls the current slot, fetches nearby slot leaders with
+`getSlotLeaders`, groups contiguous slots with the same leader, and sends only
+once per observed leader run. Each transaction is signed just-in-time with a
+fresh blockhash.
+
+Suggested ladder:
+
+- 5 minutes, 1 tx per leader run: smoke and artifact validation.
+- 30 minutes, 1 tx per leader run: first useful route comparison.
+- 2 hours, 1 tx per leader run: enough samples to start inspecting p95/p99
+  tails by private leader cohorts.
+
+Run route-isolated configs first. A multi-route race measures the product-level
+path, not which route would have independently landed fastest.
+
 ## Cohort Analysis
 
 The public artifact includes signatures and observation timestamps. Cohorts such

@@ -3,7 +3,7 @@ name = "solana-tx-bench"
 version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0"
-repository = "https://github.com/your-org/solana-tx-bench"
+repository = "https://github.com/rpc-edge/solana-tx-bench"
 description = "Reusable Solana transaction sender benchmark with pluggable provider adapters"
 publish = false
 
