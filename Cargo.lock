@@ -5345,6 +5345,7 @@ dependencies = [
  "futures",
  "reqwest",
  "rpcedge-relay-client",
+ "rustls",
  "serde",
  "serde_json",
  "serde_yaml",

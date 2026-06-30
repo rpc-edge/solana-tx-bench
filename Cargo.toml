@@ -19,6 +19,7 @@ dotenvy = "0.15"
 futures = "0.3"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 rpcedge-relay-client = { git = "https://github.com/rpc-edge/rpcedge-relay-client.git", rev = "01a527fa974322b79987e2bc2effbc317cfefa6c" }
+rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_yaml = "0.9"
