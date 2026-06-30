@@ -103,7 +103,6 @@ pub async fn run_leader_paced(
         lamports: config.lamports,
         compute_unit_limit: config.compute_unit_limit,
         compute_unit_price_microlamports: config.compute_unit_price_microlamports,
-        memo_prefix: memo_prefix.clone(),
     };
 
     let rpc = RpcClient::new_with_commitment(config.rpc_url.clone(), CommitmentConfig::processed());

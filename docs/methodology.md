@@ -34,10 +34,14 @@ Each generated transaction contains:
 - compute-unit-limit instruction;
 - optional compute-unit-price instruction;
 - self-transfer from the funded keypair back to itself;
-- memo with benchmark identifier and iteration.
+- iteration-varying transfer amount for deterministic unique signatures.
 
-This keeps the transaction easy to identify while avoiding receiver account
-management. It still spends normal Solana fees and any configured priority fee.
+The default transaction intentionally does not include a Memo instruction. The
+benchmark identifies transactions by signature and generated artifacts, so Memo
+compute overhead would only make cheap latency probes more expensive. The
+self-transfer avoids receiver account management and is net-neutral for
+lamports, but the transaction still spends normal Solana fees and any configured
+priority fee.
 
 ## Recommended Run Ladder
 

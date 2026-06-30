@@ -70,7 +70,7 @@ What this repo already does similarly:
 - YAML config;
 - provider adapter model;
 - compute budget and priority fee config;
-- repeated generated transactions with a memo identity.
+- repeated generated transactions with deterministic unique signatures.
 
 What to add later:
 

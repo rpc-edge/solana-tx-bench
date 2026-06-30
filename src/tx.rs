@@ -4,16 +4,13 @@ use solana_client::rpc_client::RpcClient;
 use solana_compute_budget_interface::ComputeBudgetInstruction;
 use solana_sdk::{
     hash::Hash,
-    instruction::Instruction,
-    pubkey::Pubkey,
     signature::{read_keypair_file, Keypair, Signature},
     signer::Signer,
     transaction::Transaction,
 };
 use solana_system_interface::instruction as system_instruction;
-use std::{path::Path, str::FromStr};
+use std::path::Path;
 
-const MEMO_PROGRAM_ID: &str = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
 const BASE_SIGNATURE_FEE_LAMPORTS: u64 = 5_000;
 
 #[derive(Debug, Clone)]
@@ -22,7 +19,6 @@ pub struct TxBuildConfig {
     pub lamports: u64,
     pub compute_unit_limit: u32,
     pub compute_unit_price_microlamports: u64,
-    pub memo_prefix: String,
 }
 
 #[derive(Debug, Clone)]
@@ -98,8 +94,11 @@ pub fn build_transaction_with_blockhash(
     iteration: usize,
     blockhash: Hash,
 ) -> Result<BenchTx> {
-    let memo = format!("{}:{iteration}", config.memo_prefix);
-    let mut instructions = Vec::with_capacity(4);
+    let transfer_lamports = config
+        .lamports
+        .checked_add(iteration as u64)
+        .with_context(|| format!("transfer lamports overflow at iteration {iteration}"))?;
+    let mut instructions = Vec::with_capacity(3);
     instructions.push(ComputeBudgetInstruction::set_compute_unit_limit(
         config.compute_unit_limit,
     ));
@@ -111,9 +110,8 @@ pub fn build_transaction_with_blockhash(
     instructions.push(system_instruction::transfer(
         &payer.pubkey(),
         &payer.pubkey(),
-        config.lamports,
+        transfer_lamports,
     ));
-    instructions.push(memo_instruction(&memo)?);
     let tx = Transaction::new_signed_with_payer(
         &instructions,
         Some(&payer.pubkey()),
@@ -139,19 +137,12 @@ pub fn estimated_transaction_spend(config: &TxBuildConfig) -> u64 {
     )
 }
 
-fn memo_instruction(memo: &str) -> Result<Instruction> {
-    Ok(Instruction {
-        program_id: Pubkey::from_str(MEMO_PROGRAM_ID).context("parse memo program id")?,
-        accounts: Vec::new(),
-        data: memo.as_bytes().to_vec(),
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use solana_sdk::hash::Hash;
+    use solana_sdk::{hash::Hash, pubkey::Pubkey, transaction::Transaction};
     use std::collections::HashSet;
+    use std::str::FromStr;
 
     #[test]
     fn generated_signatures_are_unique_with_stable_compute_budget() {
@@ -161,12 +152,29 @@ mod tests {
             lamports: 1,
             compute_unit_limit: 20_000,
             compute_unit_price_microlamports: 0,
-            memo_prefix: "unit-test".to_string(),
         };
         let txs = build_transactions_with_blockhash(&config, &payer, 64, None, Hash::new_unique())
             .expect("build txs");
         let unique = txs.iter().map(|tx| tx.signature).collect::<HashSet<_>>();
         assert_eq!(unique.len(), txs.len());
+    }
+
+    #[test]
+    fn generated_transactions_do_not_include_memo_instruction() {
+        let payer = Keypair::new();
+        let config = TxBuildConfig {
+            rpc_url: "http://127.0.0.1:8899".to_string(),
+            lamports: 500,
+            compute_unit_limit: 20_000,
+            compute_unit_price_microlamports: 100,
+        };
+        let built = build_transaction_with_blockhash(&config, &payer, 7, Hash::new_unique())
+            .expect("build tx");
+        let tx: Transaction = bincode::deserialize(&built.raw).expect("deserialize tx");
+        let memo_program = Pubkey::from_str("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr").unwrap();
+
+        assert!(!tx.message.account_keys.contains(&memo_program));
+        assert_eq!(tx.message.instructions.len(), 3);
     }
 
     #[test]
@@ -177,7 +185,6 @@ mod tests {
             lamports: 1,
             compute_unit_limit: 20_000,
             compute_unit_price_microlamports: 500_000,
-            memo_prefix: "unit-test".to_string(),
         };
         let one_tx = estimate_spend_lamports(20_000, 500_000, 0);
         let err =

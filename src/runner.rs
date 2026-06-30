@@ -42,7 +42,6 @@ pub async fn run_benchmark(config: BenchConfig) -> Result<BenchRunOutput> {
         lamports: config.lamports,
         compute_unit_limit: config.compute_unit_limit,
         compute_unit_price_microlamports: config.compute_unit_price_microlamports,
-        memo_prefix: memo_prefix.clone(),
     };
     let txs = build_transactions(&tx_config, &payer, tx_count, config.max_spend_lamports)?;
     let timeout = Duration::from_millis(config.timeout_ms);

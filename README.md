@@ -131,9 +131,11 @@ Observation summaries:
 
 ## Safety Defaults
 
-The generated transaction is a self-transfer with a memo. The configured
-`lamports` move from the keypair back to the same keypair, but the transaction
-still spends Solana fees and any priority fee you configure.
+The generated transaction is a memo-free self-transfer. The configured
+`lamports` move from the keypair back to the same keypair, and the tool adds the
+iteration number to the transfer amount so every transaction has a unique
+signature without Memo program compute overhead. It still spends Solana fees and
+any priority fee you configure.
 
 Always set `max_spend_lamports`. This is only a local estimated fee cap; it is
 not a replacement for using a throwaway keypair with tiny funds.
