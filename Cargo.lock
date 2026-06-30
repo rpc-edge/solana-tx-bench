@@ -5349,6 +5349,7 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "solana-client",
+ "solana-commitment-config",
  "solana-compute-budget-interface",
  "solana-sdk",
  "solana-system-interface 3.2.0",

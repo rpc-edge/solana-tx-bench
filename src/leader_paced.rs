@@ -16,6 +16,7 @@ use chrono::{DateTime, SecondsFormat, Utc};
 use futures::future::join_all;
 use serde::{Deserialize, Serialize};
 use solana_client::rpc_client::RpcClient;
+use solana_commitment_config::CommitmentConfig;
 use solana_sdk::signer::Signer;
 use std::{
     collections::{BTreeMap, HashSet},
@@ -105,7 +106,7 @@ pub async fn run_leader_paced(
         memo_prefix: memo_prefix.clone(),
     };
 
-    let rpc = RpcClient::new(config.rpc_url.clone());
+    let rpc = RpcClient::new_with_commitment(config.rpc_url.clone(), CommitmentConfig::processed());
     let timeout = Duration::from_millis(config.timeout_ms);
     let mut providers = config
         .providers
