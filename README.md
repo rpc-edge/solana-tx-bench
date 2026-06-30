@@ -170,3 +170,7 @@ The artifacts are plain NDJSON and JSON. A Jupyter notebook that reads
 is a good next layer for publishing an HTML report in GitHub Pages or on the
 RPCEdge website. Keep provider ACK charts visually separate from
 processed/deshred observation charts.
+
+Published report archive:
+
+- https://rpc-edge.github.io/solana-tx-bench/reports/

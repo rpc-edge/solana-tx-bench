@@ -27,4 +27,19 @@ Paste `observation-summary.md` here.
 
 - RPCEdge website: https://rpcedge.com
 - RPCEdge docs: https://docs.rpcedge.com
-- Benchmark repo: `<github repo url>`
+- Benchmark repo: https://github.com/rpc-edge/solana-tx-bench
+- Published report archive: https://rpc-edge.github.io/solana-tx-bench/reports/
+
+## Publishing
+
+Reviewed static reports live under:
+
+```text
+docs/reports/<test-id>/index.html
+```
+
+GitHub Pages publishes the `docs/` directory, so the public URL shape is:
+
+```text
+https://rpc-edge.github.io/solana-tx-bench/reports/<test-id>/
+```
