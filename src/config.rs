@@ -32,7 +32,7 @@ impl Default for BenchConfig {
             duration_seconds: None,
             rate_per_second: None,
             lamports: 500,
-            compute_unit_limit: 50_000,
+            compute_unit_limit: 660,
             compute_unit_price_microlamports: 0,
             memo_prefix: None,
             max_spend_lamports: None,

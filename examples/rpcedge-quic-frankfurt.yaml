@@ -6,7 +6,7 @@ count: 3
 duration_seconds: null
 rate_per_second: null
 lamports: 500
-compute_unit_limit: 5000
+compute_unit_limit: 660
 compute_unit_price_microlamports: 0
 memo_prefix: null # deprecated/ignored; signatures are unique via transfer amount
 max_spend_lamports: 100000
