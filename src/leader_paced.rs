@@ -38,6 +38,8 @@ const LEADER_SLOTS_REFRESH_MARGIN: u64 = 16;
 pub enum LeaderPacedRouteStrategy {
     Static,
     ClientAware,
+    AlwaysRace,
+    SoftwareClientAware,
 }
 
 impl LeaderPacedRouteStrategy {
@@ -45,6 +47,8 @@ impl LeaderPacedRouteStrategy {
         match self {
             Self::Static => "static",
             Self::ClientAware => "client_aware",
+            Self::AlwaysRace => "always_race",
+            Self::SoftwareClientAware => "software_client_aware",
         }
     }
 }
@@ -113,6 +117,10 @@ pub struct LeaderSendEvent {
     pub slot_signal_status: Option<String>,
     pub slot_signal_observed_at: Option<DateTime<Utc>>,
     pub leader_client_family: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub leader_software_client: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub leader_software_client_id: Option<u16>,
     pub route_policy: Option<String>,
     pub selected_routes: Vec<String>,
     pub compute_unit_limit: u32,
@@ -265,15 +273,10 @@ pub async fn run_leader_paced(
         if sent_runs.insert(run_key) {
             let leader_metadata =
                 leader_lookup.lookup(send_slot, leader_run.leader_identity.as_str());
-            let route_selection = route_selection_for_strategy(
-                options.route_strategy,
-                leader_metadata.client_family.as_deref(),
-            );
-            let compute_unit_price_microlamports = compute_unit_price_for_strategy(
-                &config,
-                &options,
-                leader_metadata.client_family.as_deref(),
-            );
+            let route_selection =
+                route_selection_for_strategy(options.route_strategy, &leader_metadata);
+            let compute_unit_price_microlamports =
+                compute_unit_price_for_strategy(&config, &options, &leader_metadata);
             let tx_config = TxBuildConfig {
                 rpc_url: config.rpc_url.clone(),
                 lamports: config.lamports,
@@ -312,6 +315,8 @@ pub async fn run_leader_paced(
                     slot_signal_status: Some(slot_signal.status.clone()),
                     slot_signal_observed_at: Some(slot_signal.observed_at),
                     leader_client_family: leader_metadata.client_family.clone(),
+                    leader_software_client: leader_metadata.software_client.clone(),
+                    leader_software_client_id: leader_metadata.software_client_id,
                     route_policy: route_selection
                         .as_ref()
                         .map(|selection| selection.policy.clone()),
@@ -360,7 +365,7 @@ pub async fn run_leader_paced(
                             *iteration,
                             timeout,
                             route_selection.clone(),
-                            leader_metadata.client_family.clone(),
+                            leader_metadata.clone(),
                             *compute_unit_limit,
                             *compute_unit_price_microlamports,
                         )
@@ -494,7 +499,7 @@ async fn send_one_transaction_to_providers(
     iteration: usize,
     timeout: Duration,
     route_selection: Option<RouteSelection>,
-    leader_client_family: Option<String>,
+    leader_metadata: LeaderMetadata,
     compute_unit_limit: u32,
     compute_unit_price_microlamports: u64,
 ) -> Vec<BenchSample> {
@@ -506,7 +511,7 @@ async fn send_one_transaction_to_providers(
         tx_base64: tx.base64.clone(),
         timeout,
         route_selection: route_selection.clone(),
-        leader_client_family: leader_client_family.clone(),
+        leader_client_family: leader_metadata.client_family.clone(),
     };
     let futures = providers
         .iter()
@@ -524,7 +529,9 @@ async fn send_one_transaction_to_providers(
                 client_finished_at,
                 client_ack_latency_us,
                 route_selection.as_ref(),
-                leader_client_family.clone(),
+                leader_metadata.client_family.clone(),
+                leader_metadata.software_client.clone(),
+                leader_metadata.software_client_id,
                 compute_unit_limit,
                 compute_unit_price_microlamports,
                 tx.estimated_spend_lamports,
@@ -537,6 +544,8 @@ async fn send_one_transaction_to_providers(
 #[derive(Debug, Clone, Default)]
 struct LeaderMetadata {
     client_family: Option<String>,
+    software_client: Option<String>,
+    software_client_id: Option<u16>,
 }
 
 #[derive(Debug, Clone)]
@@ -586,7 +595,21 @@ impl LeaderMetadataLookup {
                 .and_then(|client| client.get("family"))
                 .and_then(Value::as_str)
                 .map(normalize_client_family);
-            let metadata = LeaderMetadata { client_family };
+            let software_client = row
+                .get("client")
+                .and_then(|client| client.get("software"))
+                .and_then(Value::as_str)
+                .map(ToOwned::to_owned);
+            let software_client_id = row
+                .get("client")
+                .and_then(|client| client.get("softwareClientId"))
+                .and_then(Value::as_u64)
+                .and_then(|value| u16::try_from(value).ok());
+            let metadata = LeaderMetadata {
+                client_family,
+                software_client,
+                software_client_id,
+            };
             if let Some(identity) = identity {
                 self.by_slot.insert(
                     slot,
@@ -672,12 +695,19 @@ fn normalize_client_family(value: &str) -> String {
 
 fn route_selection_for_strategy(
     strategy: LeaderPacedRouteStrategy,
-    client_family: Option<&str>,
+    leader_metadata: &LeaderMetadata,
 ) -> Option<RouteSelection> {
     match strategy {
         LeaderPacedRouteStrategy::Static => None,
+        LeaderPacedRouteStrategy::AlwaysRace => Some(RouteSelection::only(
+            "always_race",
+            ["tpu_quic", "jito_bundle", "harmonic_bundle"],
+        )),
         LeaderPacedRouteStrategy::ClientAware => {
-            let family = client_family.unwrap_or("unknown");
+            let family = leader_metadata
+                .client_family
+                .as_deref()
+                .unwrap_or("unknown");
             if family == "jito" {
                 Some(RouteSelection::only(
                     "client_aware_jito",
@@ -692,23 +722,73 @@ fn route_selection_for_strategy(
                 Some(RouteSelection::only("client_aware_tpu_only", ["tpu_quic"]))
             }
         }
+        LeaderPacedRouteStrategy::SoftwareClientAware => {
+            let routes = software_client_aware_routes(leader_metadata);
+            let policy = match routes.as_slice() {
+                ["tpu_quic", "jito_bundle", "harmonic_bundle"] => {
+                    "software_client_aware_jito_harmonic"
+                }
+                ["tpu_quic", "jito_bundle"] => "software_client_aware_jito",
+                ["tpu_quic", "harmonic_bundle"] => "software_client_aware_harmonic",
+                _ => "software_client_aware_tpu_only",
+            };
+            Some(RouteSelection::only(policy, routes))
+        }
     }
 }
 
 fn compute_unit_price_for_strategy(
     config: &BenchConfig,
     options: &LeaderPacedOptions,
-    client_family: Option<&str>,
+    leader_metadata: &LeaderMetadata,
 ) -> u64 {
-    if options.route_strategy == LeaderPacedRouteStrategy::ClientAware
-        && client_family == Some("harmonic")
-    {
+    let uses_harmonic = route_selection_for_strategy(options.route_strategy, leader_metadata)
+        .map(|selection| {
+            selection
+                .routes
+                .iter()
+                .any(|route| route == "harmonic_bundle")
+        })
+        .unwrap_or(false);
+    if uses_harmonic {
         options
             .client_aware_harmonic_cu_price_microlamports
             .unwrap_or(config.compute_unit_price_microlamports)
     } else {
         config.compute_unit_price_microlamports
     }
+}
+
+fn software_client_aware_routes(leader_metadata: &LeaderMetadata) -> Vec<&'static str> {
+    let mut routes = vec!["tpu_quic"];
+    if is_jito_software_client(leader_metadata) {
+        routes.push("jito_bundle");
+    }
+    if is_harmonic_software_client(leader_metadata) {
+        routes.push("harmonic_bundle");
+    }
+    routes
+}
+
+fn is_jito_software_client(leader_metadata: &LeaderMetadata) -> bool {
+    matches!(leader_metadata.software_client_id, Some(1 | 6 | 12))
+        || leader_metadata
+            .software_client
+            .as_deref()
+            .map(|value| {
+                let value = value.to_ascii_lowercase();
+                value.contains("jito") || value.contains("bam")
+            })
+            .unwrap_or(false)
+}
+
+fn is_harmonic_software_client(leader_metadata: &LeaderMetadata) -> bool {
+    matches!(leader_metadata.software_client_id, Some(9 | 10 | 11))
+        || leader_metadata
+            .software_client
+            .as_deref()
+            .map(|value| value.to_ascii_lowercase().contains("harmonic"))
+            .unwrap_or(false)
 }
 
 fn current_leader_run(
@@ -858,8 +938,12 @@ mod tests {
 
     #[test]
     fn client_aware_routes_jito_leaders_to_tpu_and_jito_bundle() {
+        let metadata = LeaderMetadata {
+            client_family: Some("jito".to_string()),
+            ..LeaderMetadata::default()
+        };
         let selection =
-            route_selection_for_strategy(LeaderPacedRouteStrategy::ClientAware, Some("jito"))
+            route_selection_for_strategy(LeaderPacedRouteStrategy::ClientAware, &metadata)
                 .expect("selection");
         assert_eq!(selection.policy, "client_aware_jito");
         assert_eq!(selection.routes, vec!["tpu_quic", "jito_bundle"]);
@@ -867,8 +951,12 @@ mod tests {
 
     #[test]
     fn client_aware_routes_harmonic_leaders_to_tpu_and_harmonic() {
+        let metadata = LeaderMetadata {
+            client_family: Some("harmonic".to_string()),
+            ..LeaderMetadata::default()
+        };
         let selection =
-            route_selection_for_strategy(LeaderPacedRouteStrategy::ClientAware, Some("harmonic"))
+            route_selection_for_strategy(LeaderPacedRouteStrategy::ClientAware, &metadata)
                 .expect("selection");
         assert_eq!(selection.policy, "client_aware_harmonic");
         assert_eq!(selection.routes, vec!["tpu_quic", "harmonic_bundle"]);
@@ -876,10 +964,70 @@ mod tests {
 
     #[test]
     fn client_aware_defaults_unknown_leaders_to_tpu_only() {
+        let metadata = LeaderMetadata {
+            client_family: Some("agave".to_string()),
+            ..LeaderMetadata::default()
+        };
         let selection =
-            route_selection_for_strategy(LeaderPacedRouteStrategy::ClientAware, Some("agave"))
+            route_selection_for_strategy(LeaderPacedRouteStrategy::ClientAware, &metadata)
                 .expect("selection");
         assert_eq!(selection.policy, "client_aware_tpu_only");
+        assert_eq!(selection.routes, vec!["tpu_quic"]);
+    }
+
+    #[test]
+    fn always_race_routes_to_all_block_engine_paths() {
+        let selection = route_selection_for_strategy(
+            LeaderPacedRouteStrategy::AlwaysRace,
+            &LeaderMetadata::default(),
+        )
+        .expect("selection");
+        assert_eq!(selection.policy, "always_race");
+        assert_eq!(
+            selection.routes,
+            vec!["tpu_quic", "jito_bundle", "harmonic_bundle"]
+        );
+    }
+
+    #[test]
+    fn software_client_aware_routes_bam_to_jito() {
+        let metadata = LeaderMetadata {
+            client_family: Some("bam".to_string()),
+            software_client: Some("AgaveBam".to_string()),
+            software_client_id: Some(6),
+        };
+        let selection =
+            route_selection_for_strategy(LeaderPacedRouteStrategy::SoftwareClientAware, &metadata)
+                .expect("selection");
+        assert_eq!(selection.policy, "software_client_aware_jito");
+        assert_eq!(selection.routes, vec!["tpu_quic", "jito_bundle"]);
+    }
+
+    #[test]
+    fn software_client_aware_routes_harmonic_to_harmonic() {
+        let metadata = LeaderMetadata {
+            client_family: Some("harmonic".to_string()),
+            software_client: Some("HarmonicAgave".to_string()),
+            software_client_id: Some(10),
+        };
+        let selection =
+            route_selection_for_strategy(LeaderPacedRouteStrategy::SoftwareClientAware, &metadata)
+                .expect("selection");
+        assert_eq!(selection.policy, "software_client_aware_harmonic");
+        assert_eq!(selection.routes, vec!["tpu_quic", "harmonic_bundle"]);
+    }
+
+    #[test]
+    fn software_client_aware_routes_plain_agave_to_tpu_only() {
+        let metadata = LeaderMetadata {
+            client_family: Some("agave".to_string()),
+            software_client: Some("Agave".to_string()),
+            software_client_id: Some(3),
+        };
+        let selection =
+            route_selection_for_strategy(LeaderPacedRouteStrategy::SoftwareClientAware, &metadata)
+                .expect("selection");
+        assert_eq!(selection.policy, "software_client_aware_tpu_only");
         assert_eq!(selection.routes, vec!["tpu_quic"]);
     }
 
@@ -900,7 +1048,11 @@ mod tests {
                         {
                             "slot": 10,
                             "identity": "leader-a",
-                            "client": {"family": "JitoLabs"}
+                            "client": {
+                                "family": "JitoLabs",
+                                "software": "JitoLabs",
+                                "softwareClientId": 1
+                            }
                         }
                     ]
                 }
@@ -911,6 +1063,11 @@ mod tests {
             lookup.lookup(10, "leader-a").client_family.as_deref(),
             Some("jito")
         );
+        assert_eq!(
+            lookup.lookup(10, "leader-a").software_client.as_deref(),
+            Some("JitoLabs")
+        );
+        assert_eq!(lookup.lookup(10, "leader-a").software_client_id, Some(1));
         assert_eq!(
             lookup.lookup(11, "leader-a").client_family.as_deref(),
             Some("jito")

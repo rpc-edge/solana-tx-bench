@@ -125,25 +125,42 @@ The first RPCEdge strategy comparison should use two runs with the same
 transaction shape, sender region, observation sources, and leader-paced trigger:
 
 1. `tpu_quic_only`: static route set `only: [tpu_quic]` for every leader.
-2. `client_aware`: route set chosen from the scheduled leader client family in
-   the captured `getLeaderSlots` snapshot:
-   - Jito leader: `only: [tpu_quic, jito_bundle]`
-   - Harmonic leader: `only: [tpu_quic, harmonic_bundle]`
+2. `always_race`: route set `only: [tpu_quic, jito_bundle, harmonic_bundle]`
+   for every leader. This is the cost-heavy control that tells us whether the
+   extra block-engine paths improve landing latency, landed slot delta, or block
+   position enough to justify their fee/tip cost.
+3. `software_client_aware`: route set chosen from `client.software` and
+   `client.softwareClientId` in the captured `getLeaderSlots` snapshot:
+   - `JitoLabs` / software client ID `1`: `only: [tpu_quic, jito_bundle]`
+   - `AgaveBam` / software client ID `6`: `only: [tpu_quic, jito_bundle]`
+   - `FireBAM` / software client ID `12`: `only: [tpu_quic, jito_bundle]`
+   - `HarmonicAgave` / ID `10`, `HarmonicFiredancer` / ID `9`, and
+     `HarmonicFrankendancer` / ID `11`: `only: [tpu_quic, harmonic_bundle]`
    - all other or unknown clients: `only: [tpu_quic]`
 
-Run `client_aware` with:
+`client_aware` remains as a legacy strategy keyed only by normalized
+`client.family`. It is kept for old report reproducibility, but new benchmark
+runs should prefer `always_race` and `software_client_aware`.
+
+Run `software_client_aware` with:
 
 ```bash
 cargo run --release -- run-leader-paced \
   --config bench.yaml \
-  --route-strategy client_aware \
+  --route-strategy software_client_aware \
   --capture-leader-slots \
   --collect-rpcedge
 ```
 
-The client-aware strategy intentionally requires `--capture-leader-slots`. If
-the leader client family is missing, the strategy falls back to TPU-only for
-that transaction and records `client_aware_tpu_only` in the artifacts.
+The software-client-aware strategy intentionally requires `--capture-leader-slots`.
+If the leader software metadata is missing, the strategy falls back to TPU-only
+for that transaction and records `software_client_aware_tpu_only` in the
+artifacts.
+
+Do not treat validators.app `jito=true` as a route selector. That flag is useful
+metadata, but it is broad enough that it can mark most scheduled stake as Jito
+related. Route-policy experiments should be based on explicit policies and
+observable outcomes, not on assuming `jito=true` means "always use Jito".
 
 For Harmonic leaders, the runner can raise the transaction's compute-unit price
 only for that leader family:
@@ -164,6 +181,12 @@ The relay adds the Jito bundle tip transaction when the route executes. The
 benchmark's public fast ACK may not include the added tip signature; private
 RPCEdge route-attempt telemetry records `route_tip_signature`,
 `route_tip_lamports`, and `route_tip_account` for route-causal analysis.
+
+Rakurai and Raiku are intentionally not mapped to Jito or Harmonic by the
+software-client-aware strategy. Rakurai publishes its own transaction-inclusion
+and virtual-priority path, and Raiku appears as a separate client ID. Until
+RPCEdge has a dedicated route for either provider, those clients remain TPU-only
+in software-client-aware benchmarks.
 
 Observation collection is required for landing metrics. Without
 `--collect-rpcedge` or a separate collector keyed by the same `test_id`, the

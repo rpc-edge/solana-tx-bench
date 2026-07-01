@@ -124,6 +124,8 @@ pub async fn run_benchmark(config: BenchConfig) -> Result<BenchRunOutput> {
                 client_ack_latency_us,
                 None,
                 None,
+                None,
+                None,
                 config.compute_unit_limit,
                 config.compute_unit_price_microlamports,
                 tx.estimated_spend_lamports,

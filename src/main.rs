@@ -374,8 +374,14 @@ fn parse_route_strategy(raw: &str) -> Result<LeaderPacedRouteStrategy> {
     match raw.trim() {
         "static" => Ok(LeaderPacedRouteStrategy::Static),
         "client_aware" | "client-aware" => Ok(LeaderPacedRouteStrategy::ClientAware),
+        "always_race" | "always-race" => Ok(LeaderPacedRouteStrategy::AlwaysRace),
+        "software_client_aware" | "software-client-aware" => {
+            Ok(LeaderPacedRouteStrategy::SoftwareClientAware)
+        }
         other => {
-            anyhow::bail!("unknown route strategy `{other}`; expected `static` or `client_aware`")
+            anyhow::bail!(
+                "unknown route strategy `{other}`; expected `static`, `client_aware`, `always_race`, or `software_client_aware`"
+            )
         }
     }
 }

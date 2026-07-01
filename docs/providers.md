@@ -59,16 +59,34 @@ Uses a persistent QUIC connection to the RPCEdge relay and sends raw
 transactions with an RPCEdge route set. Static route selection uses the
 configured `route_mode` and `routes`.
 
-In `run-leader-paced --route-strategy client_aware`, the runner overrides the
-route set per transaction using the scheduled leader client family from the
-captured `getLeaderSlots` snapshot:
+In `run-leader-paced --route-strategy always_race`, the runner overrides the
+route set per transaction to:
 
-- `jito`: `tpu_quic + jito_bundle`
-- `harmonic`: `tpu_quic + harmonic_bundle`
+- `tpu_quic + jito_bundle + harmonic_bundle`
+
+This strategy is deliberately expensive. Use it as a control to measure whether
+extra provider routes improve landing quality enough to justify the added
+priority/tip spend.
+
+In `run-leader-paced --route-strategy software_client_aware`, the runner
+overrides the route set per transaction using the scheduled leader's
+`client.software` and `client.softwareClientId` from the captured
+`getLeaderSlots` snapshot:
+
+- `JitoLabs` / ID `1`: `tpu_quic + jito_bundle`
+- `AgaveBam` / ID `6`: `tpu_quic + jito_bundle`
+- `FireBAM` / ID `12`: `tpu_quic + jito_bundle`
+- `HarmonicAgave` / ID `10`: `tpu_quic + harmonic_bundle`
+- `HarmonicFiredancer` / ID `9`: `tpu_quic + harmonic_bundle`
+- `HarmonicFrankendancer` / ID `11`: `tpu_quic + harmonic_bundle`
 - anything else or unknown: `tpu_quic`
 
 The selected route policy and selected route list are written to
 `samples.ndjson` and `leader-sends.ndjson`.
+
+The older `client_aware` strategy is still available for old report
+reproducibility, but it uses only normalized `client.family` and is too coarse
+for BAM/Rakurai/Raiku semantics.
 
 ## Harmonic
 

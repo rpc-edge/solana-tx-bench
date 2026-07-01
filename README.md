@@ -133,8 +133,8 @@ providers:
 Use `run` for a tiny fixed-count canary, then `run-leader-paced` for the
 leader/cohort benchmark.
 
-To compare TPU-only against leader-client-aware routing, run the same
-leader-paced benchmark twice:
+To compare TPU-only against richer RPCEdge routing, run the same leader-paced
+benchmark with explicit route policies:
 
 ```bash
 # Baseline: static TPU QUIC only from bench.yaml.
@@ -145,13 +145,24 @@ cargo run --release -- run-leader-paced \
   --capture-leader-slots \
   --collect-rpcedge
 
-# Strategy: Jito leaders get TPU+Jito bundle, Harmonic leaders get
-# TPU+Harmonic, and all other leaders stay TPU-only.
+# Control: always race TPU, Jito bundle, and Harmonic bundle.
 cargo run --release -- run-leader-paced \
   --config examples/rpcedge-quic-frankfurt.yaml \
   --duration-seconds 1800 \
   --slot-trigger grpc_slot \
-  --route-strategy client_aware \
+  --route-strategy always_race \
+  --client-aware-harmonic-cu-price-microlamports 300000 \
+  --capture-leader-slots \
+  --collect-rpcedge
+
+# Strategy: software-client-aware routing. JitoLabs/BAM/FireBAM get
+# TPU+Jito bundle, Harmonic* gets TPU+Harmonic bundle, and everything
+# else stays TPU-only until a dedicated provider route exists.
+cargo run --release -- run-leader-paced \
+  --config examples/rpcedge-quic-frankfurt.yaml \
+  --duration-seconds 1800 \
+  --slot-trigger grpc_slot \
+  --route-strategy software_client_aware \
   --client-aware-harmonic-cu-price-microlamports 300000 \
   --capture-leader-slots \
   --collect-rpcedge
@@ -159,7 +170,8 @@ cargo run --release -- run-leader-paced \
 
 Use the same transaction shape and observation endpoints for both runs. Compare
 submit-to-deshred, submit-to-processed, landed slot delta, processed block
-`slot_index`, success ratio, and extra priority/tip cost.
+`slot_index`, success ratio, and extra priority/tip cost. Provider ACK latency
+is diagnostic only.
 
 Leader-paced outputs add:
 

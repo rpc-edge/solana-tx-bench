@@ -61,6 +61,10 @@ pub struct BenchSample {
     pub route_mode: Option<String>,
     pub selected_routes: Vec<String>,
     pub leader_client_family: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub leader_software_client: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub leader_software_client_id: Option<u16>,
     pub compute_unit_limit: u32,
     pub compute_unit_price_microlamports: u64,
     pub estimated_spend_lamports: u64,
@@ -76,6 +80,8 @@ impl BenchSample {
         client_ack_latency_us: u128,
         route_selection: Option<&RouteSelection>,
         leader_client_family: Option<String>,
+        leader_software_client: Option<String>,
+        leader_software_client_id: Option<u16>,
         compute_unit_limit: u32,
         compute_unit_price_microlamports: u64,
         estimated_spend_lamports: u64,
@@ -106,6 +112,8 @@ impl BenchSample {
                 .map(|selection| selection.routes.clone())
                 .unwrap_or_default(),
             leader_client_family,
+            leader_software_client,
+            leader_software_client_id,
             compute_unit_limit,
             compute_unit_price_microlamports,
             estimated_spend_lamports,

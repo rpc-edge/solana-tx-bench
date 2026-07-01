@@ -59,11 +59,19 @@ Important fields:
 - `status_code`
 - `error_class`
 - `error`
+- `route_policy`
+- `selected_routes`
+- `leader_client_family`
+- `leader_software_client`
+- `leader_software_client_id`
 
 `provider_ack_latency_us` is useful for diagnosing provider/API behavior, but it
 is not landing latency and not first-shred/deshred/processed latency.
 `client_ack_latency_us` is the elapsed wall time for the full client submission
 round for that transaction and can include concurrent fanout effects.
+
+`leader_client_family` is a coarse cohort label. Route-policy decisions should
+prefer `leader_software_client` and `leader_software_client_id` when present.
 
 ## leader-sends.ndjson
 
@@ -82,6 +90,11 @@ One JSON object per signed benchmark transaction:
 - `trigger_source`: `grpc_slot` or legacy `rpc_poll`
 - `slot_signal_status`
 - `slot_signal_observed_at`
+- `leader_client_family`
+- `leader_software_client`
+- `leader_software_client_id`
+- `route_policy`
+- `selected_routes`
 
 This file is the public join surface for later leader-cohort enrichment.
 
