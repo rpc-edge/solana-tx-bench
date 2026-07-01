@@ -1,10 +1,10 @@
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use solana_tx_bench::{
-    collect_rpcedge_observations, observation_summary_markdown, run_benchmark, run_leader_paced,
-    summarize_observations, BenchConfig, LeaderPacedOptions, LeaderPacedRouteStrategy,
-    LeaderPacedTrigger, LeaderSlotsCaptureConfig, ObservationEvent, RpcEdgeCollectConfig,
-    RpcEdgeLeaderCollector,
+    collect_rpcedge_observations, generate_report, observation_summary_markdown, run_benchmark,
+    run_leader_paced, summarize_observations, BenchConfig, LeaderPacedOptions,
+    LeaderPacedRouteStrategy, LeaderPacedTrigger, LeaderSlotsCaptureConfig, ObservationEvent,
+    RpcEdgeCollectConfig, RpcEdgeLeaderCollector,
 };
 use std::{
     fs,
@@ -97,6 +97,10 @@ enum Command {
         output_dir: PathBuf,
         #[arg(long, default_value_t = 2)]
         min_sources: usize,
+    },
+    Report {
+        #[arg(long)]
+        artifact_dir: PathBuf,
     },
 }
 
@@ -287,6 +291,15 @@ async fn main() -> Result<()> {
                 "summary={}",
                 output_dir.join("observation-summary.md").display()
             );
+        }
+        Command::Report { artifact_dir } => {
+            let report = generate_report(&artifact_dir)?;
+            println!("test_id={}", report.test_id);
+            println!("sent_transactions={}", report.totals.sent_transactions);
+            println!("matched_signatures={}", report.totals.matched_signatures);
+            println!("report_json={}", artifact_dir.join("report.json").display());
+            println!("report_md={}", artifact_dir.join("report.md").display());
+            println!("report_html={}", artifact_dir.join("report.html").display());
         }
     }
     Ok(())

@@ -31,6 +31,10 @@ pub struct BenchManifest {
 pub struct ManifestProvider {
     pub name: String,
     pub kind: ProviderKind,
+    #[serde(default)]
+    pub route_mode: Option<String>,
+    #[serde(default)]
+    pub routes: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

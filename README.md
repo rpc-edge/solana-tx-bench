@@ -29,9 +29,10 @@ signed transaction submitted
 Provider ACK latency is retained only as a diagnostic side channel. It is not
 the benchmark result.
 
-Private context such as leader geography, validator client, datacenter, customer
-plan, and bad-leader attribution can be joined downstream using the transaction
-signature and observed slot.
+Leader geography, validator client, datacenter, route hints, and bad-leader
+context should come from the saved `getLeaderSlots` snapshot when building the
+public report. Private ClickHouse joins are optional internal diagnostics, not
+required for the benchmarker.
 
 ## Supported Adapters
 
@@ -169,6 +170,17 @@ Leader-paced outputs add:
 - `matched-observation-summary.json`
 - `matched-observation-summary.md`
 
+Build the self-contained report:
+
+```bash
+cargo run --release -- report \
+  --artifact-dir artifacts/<test_id>
+```
+
+The report command writes `report.json`, `report.md`, and `report.html` using
+only local artifacts from the run directory. Leader/client/location cohorts are
+computed from saved `getLeaderSlots` snapshots.
+
 Collect matched observations from RPCEdge Yellowstone processed + SubscribeDeshred:
 
 ```bash
@@ -215,19 +227,26 @@ existing Solana sender and stream benchmark tools.
 
 See [docs/artifacts.md](docs/artifacts.md).
 
-## Private First-Shred Enrichment
+## RPCEdge Enrichment Boundary
 
 See [docs/polaris-enrichment.md](docs/polaris-enrichment.md) for the intended
-private join path. That data should not be required by this public benchmark
-repo.
+boundary between portable `getLeaderSlots` enrichment and Polaris-private
+gateway/customer diagnostics. Private data should not be required by this public
+benchmark repo.
 
 ## Report Visualization
 
-The artifacts are plain NDJSON and JSON. A Jupyter notebook that reads
-`leader-sends.ndjson`, `samples.ndjson`, and `matched-observation-summary.json`
-is a good next layer for publishing an HTML report in GitHub Pages or on the
-RPCEdge website. Keep provider ACK charts visually separate from
-processed/deshred observation charts.
+The artifacts are plain NDJSON and JSON. The built-in report command writes
+portable `report.json`, `report.md`, and `report.html` files directly from the
+artifact directory:
+
+```bash
+cargo run --release -- report --artifact-dir artifacts/<test_id>
+```
+
+Jupyter or Python notebooks can still be useful for custom charts, but they are
+not required for the standard public report. Keep provider ACK charts visually
+separate from processed/deshred observation charts.
 
 Published report archive:
 

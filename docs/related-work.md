@@ -144,13 +144,16 @@ The repo should include these layers:
 3. **Provider adapters, ongoing scope:** clean adapters for RPCEdge, Solana
    JSON-RPC, Helius, Harmonic, RPCFast, Astralane, bloXroute, and other sender
    APIs.
-4. **Private enrichment, out of public scope:** Polaris first-shred/deshred,
-   processed-slot, leader geography, customer dimensions, and ClickHouse joins.
+4. **Private enrichment, out of public scope:** Polaris route-attempt internals,
+   customer dimensions, private persistence diagnostics, and ClickHouse joins.
+   Leader geography and validator-client cohorts belong in the public report
+   when they are present in the saved `getLeaderSlots` snapshot.
 
 The most important product distinction:
 
 ```text
-Public repo: reproducible matched observation samples and source percentiles.
-Private Polaris layer: leader-region, bad-leader, validator-client, customer,
-and ClickHouse cohort context.
+Public repo: reproducible matched observation samples, source percentiles, and
+getLeaderSlots-backed leader cohorts.
+Private Polaris layer: route internals, customer dimensions, persistence
+diagnostics, and deeper ClickHouse cohort context.
 ```

@@ -1,8 +1,8 @@
 # Methodology
 
 This benchmark is designed to compare transaction observation latency across
-Yellowstone processed and SubscribeDeshred sources, then optionally enrich
-those observations with private infrastructure context.
+Yellowstone processed and SubscribeDeshred sources, then enrich those
+observations with a saved `getLeaderSlots` snapshot when available.
 
 ## Measurement Boundary
 
@@ -16,16 +16,17 @@ signed transaction generated locally
   -> source percentile and win-rate report
 ```
 
-Private enrichment boundary:
+Portable enrichment boundary:
 
 ```text
 signature + observed slot from public artifact
   -> getLeaderSlots snapshot captured during the run
-  -> leader cohort, region, validator client, datacenter, customer dimensions
+  -> leader cohort, region, validator client, datacenter, route hints
 ```
 
-The public tool should never require private ClickHouse, validator, deshred, or
-gateway access.
+The public tool should never require private ClickHouse or private validator
+metadata. `getLeaderSlots` is the portable enrichment API; the saved snapshot is
+part of the benchmark artifact.
 
 ## Transaction Shape
 
@@ -113,7 +114,7 @@ Suggested ladder:
 - 5 minutes, 1 tx per leader run: smoke and artifact validation.
 - 30 minutes, 1 tx per leader run: first useful route comparison.
 - 2 hours, 1 tx per leader run: enough samples to start inspecting p95/p99
-  tails by private leader cohorts.
+  tails by leader cohorts captured in `getLeaderSlots`.
 
 Run route-isolated configs first. A multi-route race measures the product-level
 path, not which route would have independently landed fastest.
@@ -187,8 +188,17 @@ validator client, or leader proximity should be computed from:
 
 That separation lets external users compare processed-vs-deshred observation
 behavior without Polaris-private ClickHouse access. Private RPCEdge reports can
-still join deeper internal telemetry, but the public report should be
-reproducible from local artifacts.
+still join deeper internal telemetry such as route-attempt internals or customer
+dimensions, but the public report should be reproducible from local artifacts.
+
+Generate the standalone report with:
+
+```bash
+solana-tx-bench report --artifact-dir artifacts/<test_id>
+```
+
+This command reads only local artifacts from the run directory and writes
+`report.json`, `report.md`, and `report.html`.
 
 ## Landing-Performance Buckets
 

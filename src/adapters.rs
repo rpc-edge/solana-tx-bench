@@ -67,6 +67,23 @@ impl ProviderConfig {
             Self::RpcedgeQuicRawTx { .. } => ProviderKind::RpcedgeQuicRawTx,
         }
     }
+
+    pub fn configured_route_mode(&self) -> Option<RouteMode> {
+        match self {
+            Self::RpcedgeRouteAwareHttp { route_mode, .. }
+            | Self::RpcedgeQuicRawTx { route_mode, .. } => Some(*route_mode),
+            _ => None,
+        }
+    }
+
+    pub fn configured_routes(&self) -> Vec<String> {
+        match self {
+            Self::RpcedgeRouteAwareHttp { routes, .. } | Self::RpcedgeQuicRawTx { routes, .. } => {
+                routes.clone()
+            }
+            _ => Vec::new(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq)]

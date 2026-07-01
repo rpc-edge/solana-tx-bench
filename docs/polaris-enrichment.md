@@ -1,7 +1,7 @@
 # RPCEdge And Private Enrichment
 
 This public repository should produce generic matched observation artifacts and
-can optionally capture public/customer-safe `getLeaderSlots` context. Deeper
+can capture public/customer-safe `getLeaderSlots` context. Deeper
 Polaris-specific joins remain private.
 
 ## Boundary
@@ -47,9 +47,10 @@ local report
 solana-tx-bench artifacts
   processed/deshred observation events
   matched source percentile summary
+  optional getLeaderSlots leader/cohort snapshot
         |
         v
-private metadata store
+  private metadata store
   customer/key dimensions
   internal route-attempt telemetry
   gateway persistence diagnostics

@@ -76,6 +76,11 @@ pub async fn run_benchmark(config: BenchConfig) -> Result<BenchRunOutput> {
             .map(|spec| ManifestProvider {
                 name: spec.name.clone(),
                 kind: spec.config.kind(),
+                route_mode: spec
+                    .config
+                    .configured_route_mode()
+                    .map(|mode| mode.as_wire().to_string()),
+                routes: spec.config.configured_routes(),
             })
             .collect(),
     };

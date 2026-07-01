@@ -5,6 +5,7 @@ pub mod config;
 pub mod leader_paced;
 pub mod leader_slots;
 pub mod observations;
+pub mod report;
 pub mod runner;
 pub mod slot_signal;
 pub mod tx;
@@ -24,4 +25,5 @@ pub use observations::{
     observation_summary_markdown, summarize_observations, MatchedObservationSummary,
     ObservationEvent, ObservationSourceKind, SourceObservationSummary,
 };
+pub use report::{generate_report, ReportOutput};
 pub use runner::{run_benchmark, BenchRunOutput};
