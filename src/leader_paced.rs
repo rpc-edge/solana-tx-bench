@@ -10,6 +10,7 @@ use crate::{
         observation_summary_markdown, summarize_observations, MatchedObservationSummary,
         ObservationEvent,
     },
+    slot_signal::{spawn_grpc_slot_signal, GrpcSlotSignalConfig, SlotSignal},
     tx::{
         build_transaction_with_blockhash, estimated_transaction_spend, load_keypair, BenchTx,
         TxBuildConfig,
@@ -27,9 +28,11 @@ use std::{
     collections::{BTreeMap, HashSet},
     fs::{self, File},
     io::{BufRead, BufReader, BufWriter, Write},
-    path::PathBuf,
+    path::{Path, PathBuf},
     time::{Duration, Instant},
 };
+
+const LEADER_SLOTS_REFRESH_MARGIN: u64 = 16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LeaderPacedRouteStrategy {
@@ -47,6 +50,21 @@ impl LeaderPacedRouteStrategy {
 }
 
 #[derive(Debug, Clone)]
+pub enum LeaderPacedTrigger {
+    RpcPoll,
+    GrpcSlot(GrpcSlotSignalConfig),
+}
+
+impl LeaderPacedTrigger {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::RpcPoll => "rpc_poll",
+            Self::GrpcSlot(_) => "grpc_slot",
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct LeaderPacedOptions {
     pub duration: Duration,
     pub txs_per_leader_run: usize,
@@ -59,6 +77,7 @@ pub struct LeaderPacedOptions {
     pub leader_slots: Option<LeaderSlotsCaptureConfig>,
     pub route_strategy: LeaderPacedRouteStrategy,
     pub client_aware_harmonic_cu_price_microlamports: Option<u64>,
+    pub trigger: LeaderPacedTrigger,
 }
 
 #[derive(Debug, Clone)]
@@ -90,6 +109,9 @@ pub struct LeaderSendEvent {
     pub leader_run_end_slot: u64,
     pub send_slot: u64,
     pub sent_at: DateTime<Utc>,
+    pub trigger_source: String,
+    pub slot_signal_status: Option<String>,
+    pub slot_signal_observed_at: Option<DateTime<Utc>>,
     pub leader_client_family: Option<String>,
     pub route_policy: Option<String>,
     pub selected_routes: Vec<String>,
@@ -149,13 +171,25 @@ pub async fn run_leader_paced(
     }
 
     let mut writer = ArtifactWriter::create(&config.artifact_dir, &test_id)?;
+    if matches!(options.trigger, LeaderPacedTrigger::GrpcSlot(_)) && options.leader_slots.is_none()
+    {
+        bail!("grpc slot trigger requires --capture-leader-slots");
+    }
+
     let mut leader_lookup = LeaderMetadataLookup::default();
-    let leader_slots_snapshot_path = if let Some(leader_slots) = options.leader_slots.as_ref() {
+    let leader_slots_snapshot_path = if options.leader_slots.is_some()
+        && matches!(options.trigger, LeaderPacedTrigger::RpcPoll)
+    {
         let start_slot = rpc
             .get_slot()
             .context("get slot for getLeaderSlots snapshot")?;
-        let artifact = capture_leader_slots_snapshot(leader_slots, start_slot).await?;
-        leader_lookup = LeaderMetadataLookup::from_artifact(&artifact);
+        let artifact = refresh_leader_slots(
+            options.leader_slots.as_ref().expect("checked some"),
+            start_slot,
+            &writer.run_dir,
+        )
+        .await?;
+        leader_lookup.extend_from_artifact(&artifact);
         write_leader_slots_snapshot(&writer.run_dir, &artifact)?;
         Some(writer.run_dir.join("leader-slots-snapshot.json"))
     } else {
@@ -190,14 +224,43 @@ pub async fn run_leader_paced(
     let mut estimated_spent = 0_u64;
     let mut iteration = 0_usize;
 
+    let mut slot_rx = match options.trigger.clone() {
+        LeaderPacedTrigger::RpcPoll => None,
+        LeaderPacedTrigger::GrpcSlot(config) => Some(spawn_grpc_slot_signal(config)),
+    };
+    let trigger_source = options.trigger.as_str().to_string();
+
     while Instant::now() < deadline {
-        let send_slot = rpc.get_slot().context("get current slot")?;
-        let leader_run = current_leader_run(
-            &rpc,
-            send_slot,
-            options.lookbehind_slots,
-            options.lookahead_slots,
-        )?;
+        let slot_signal = next_slot_signal(&rpc, slot_rx.as_mut(), deadline)
+            .await
+            .context("get next slot signal")?;
+        let Some(slot_signal) = slot_signal else {
+            break;
+        };
+        let send_slot = slot_signal.slot;
+        if let Some(leader_slots) = options.leader_slots.as_ref() {
+            let should_refresh = leader_lookup
+                .max_slot()
+                .map(|max_slot| send_slot.saturating_add(LEADER_SLOTS_REFRESH_MARGIN) >= max_slot)
+                .unwrap_or(true)
+                || leader_lookup.run_for_slot(send_slot).is_none();
+            if should_refresh {
+                let artifact =
+                    refresh_leader_slots(leader_slots, send_slot, &writer.run_dir).await?;
+                leader_lookup.extend_from_artifact(&artifact);
+            }
+        }
+        let leader_run = match &options.trigger {
+            LeaderPacedTrigger::RpcPoll if options.leader_slots.is_none() => current_leader_run(
+                &rpc,
+                send_slot,
+                options.lookbehind_slots,
+                options.lookahead_slots,
+            )?,
+            _ => leader_lookup.run_for_slot(send_slot).with_context(|| {
+                format!("leader slot metadata missing for grpc-observed slot {send_slot}")
+            })?,
+        };
         let run_key = (leader_run.leader_identity.clone(), leader_run.start_slot);
         if sent_runs.insert(run_key) {
             let leader_metadata =
@@ -245,6 +308,9 @@ pub async fn run_leader_paced(
                     leader_run_end_slot: leader_run.end_slot,
                     send_slot,
                     sent_at,
+                    trigger_source: trigger_source.clone(),
+                    slot_signal_status: Some(slot_signal.status.clone()),
+                    slot_signal_observed_at: Some(slot_signal.observed_at),
                     leader_client_family: leader_metadata.client_family.clone(),
                     route_policy: route_selection
                         .as_ref()
@@ -308,7 +374,9 @@ pub async fn run_leader_paced(
                 }
             }
         }
-        tokio::time::sleep(options.poll_interval).await;
+        if matches!(options.trigger, LeaderPacedTrigger::RpcPoll) {
+            tokio::time::sleep(options.poll_interval).await;
+        }
     }
 
     leader_sends.flush().context("flush leader sends")?;
@@ -377,6 +445,42 @@ pub async fn run_leader_paced(
     })
 }
 
+async fn next_slot_signal(
+    rpc: &RpcClient,
+    slot_rx: Option<&mut tokio::sync::mpsc::Receiver<SlotSignal>>,
+    deadline: Instant,
+) -> Result<Option<SlotSignal>> {
+    if let Some(rx) = slot_rx {
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        if remaining.is_zero() {
+            return Ok(None);
+        }
+        return match tokio::time::timeout(remaining, rx.recv()).await {
+            Ok(Some(signal)) => Ok(Some(signal)),
+            Ok(None) | Err(_) => Ok(None),
+        };
+    }
+
+    let slot = rpc.get_slot().context("get current slot")?;
+    Ok(Some(SlotSignal {
+        slot,
+        status: "RPC_POLL".to_string(),
+        observed_at: Utc::now(),
+    }))
+}
+
+async fn refresh_leader_slots(
+    config: &LeaderSlotsCaptureConfig,
+    start_slot: u64,
+    run_dir: &Path,
+) -> Result<crate::leader_slots::LeaderSlotsSnapshotArtifact> {
+    let artifact = capture_leader_slots_snapshot(config, start_slot).await?;
+    let refresh_path = run_dir.join(format!("leader-slots-snapshot-{start_slot}.json"));
+    fs::write(&refresh_path, serde_json::to_vec_pretty(&artifact)?)
+        .with_context(|| format!("write {}", refresh_path.display()))?;
+    Ok(artifact)
+}
+
 async fn send_one_transaction_to_providers(
     providers: &[Box<dyn ProviderAdapter>],
     test_id: &str,
@@ -430,14 +534,30 @@ struct LeaderMetadata {
     client_family: Option<String>,
 }
 
+#[derive(Debug, Clone)]
+struct LeaderSlotInfo {
+    identity: String,
+    metadata: LeaderMetadata,
+}
+
 #[derive(Debug, Default)]
 struct LeaderMetadataLookup {
-    by_slot: BTreeMap<u64, LeaderMetadata>,
+    by_slot: BTreeMap<u64, LeaderSlotInfo>,
     by_identity: BTreeMap<String, LeaderMetadata>,
 }
 
 impl LeaderMetadataLookup {
+    #[cfg(test)]
     fn from_artifact(artifact: &crate::leader_slots::LeaderSlotsSnapshotArtifact) -> Self {
+        let mut lookup = Self::default();
+        lookup.extend_from_artifact(artifact);
+        lookup
+    }
+
+    fn extend_from_artifact(
+        &mut self,
+        artifact: &crate::leader_slots::LeaderSlotsSnapshotArtifact,
+    ) {
         let data = artifact
             .response
             .get("result")
@@ -445,10 +565,9 @@ impl LeaderMetadataLookup {
             .and_then(Value::as_array)
             .or_else(|| artifact.response.get("data").and_then(Value::as_array));
         let Some(rows) = data else {
-            return Self::default();
+            return;
         };
 
-        let mut lookup = Self::default();
         for row in rows {
             let Some(slot) = row.get("slot").and_then(Value::as_u64) else {
                 continue;
@@ -463,20 +582,69 @@ impl LeaderMetadataLookup {
                 .and_then(Value::as_str)
                 .map(normalize_client_family);
             let metadata = LeaderMetadata { client_family };
-            lookup.by_slot.insert(slot, metadata.clone());
             if let Some(identity) = identity {
-                lookup.by_identity.entry(identity).or_insert(metadata);
+                self.by_slot.insert(
+                    slot,
+                    LeaderSlotInfo {
+                        identity: identity.clone(),
+                        metadata: metadata.clone(),
+                    },
+                );
+                self.by_identity.entry(identity).or_insert(metadata);
             }
         }
-        lookup
     }
 
     fn lookup(&self, slot: u64, identity: &str) -> LeaderMetadata {
         self.by_slot
             .get(&slot)
+            .map(|info| &info.metadata)
             .or_else(|| self.by_identity.get(identity))
             .cloned()
             .unwrap_or_default()
+    }
+
+    fn run_for_slot(&self, slot: u64) -> Option<LeaderRun> {
+        let info = self.by_slot.get(&slot)?;
+        let mut start_slot = slot;
+        while start_slot > 0 {
+            let previous = start_slot - 1;
+            if self
+                .by_slot
+                .get(&previous)
+                .map(|candidate| candidate.identity.as_str())
+                == Some(info.identity.as_str())
+            {
+                start_slot = previous;
+            } else {
+                break;
+            }
+        }
+
+        let mut end_slot = slot;
+        loop {
+            let next = end_slot.saturating_add(1);
+            if self
+                .by_slot
+                .get(&next)
+                .map(|candidate| candidate.identity.as_str())
+                == Some(info.identity.as_str())
+            {
+                end_slot = next;
+            } else {
+                break;
+            }
+        }
+
+        Some(LeaderRun {
+            leader_identity: info.identity.clone(),
+            start_slot,
+            end_slot,
+        })
+    }
+
+    fn max_slot(&self) -> Option<u64> {
+        self.by_slot.keys().next_back().copied()
     }
 }
 

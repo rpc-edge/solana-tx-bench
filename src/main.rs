@@ -3,7 +3,8 @@ use clap::{Parser, Subcommand};
 use solana_tx_bench::{
     collect_rpcedge_observations, observation_summary_markdown, run_benchmark, run_leader_paced,
     summarize_observations, BenchConfig, LeaderPacedOptions, LeaderPacedRouteStrategy,
-    LeaderSlotsCaptureConfig, ObservationEvent, RpcEdgeCollectConfig, RpcEdgeLeaderCollector,
+    LeaderPacedTrigger, LeaderSlotsCaptureConfig, ObservationEvent, RpcEdgeCollectConfig,
+    RpcEdgeLeaderCollector,
 };
 use std::{
     fs,
@@ -40,6 +41,10 @@ enum Command {
         lookahead_slots: u64,
         #[arg(long, default_value_t = 150)]
         poll_ms: u64,
+        #[arg(long, default_value = "grpc_slot")]
+        slot_trigger: String,
+        #[arg(long, env = "RPCEDGE_GRPC_URL")]
+        slot_signal_endpoint: Option<String>,
         #[arg(long)]
         collect_rpcedge: bool,
         #[arg(long, env = "RPCEDGE_GRPC_URL")]
@@ -132,6 +137,8 @@ async fn main() -> Result<()> {
             lookbehind_slots,
             lookahead_slots,
             poll_ms,
+            slot_trigger,
+            slot_signal_endpoint,
             collect_rpcedge,
             rpcedge_endpoint,
             x_token,
@@ -148,6 +155,11 @@ async fn main() -> Result<()> {
                 .with_context(|| format!("read {}", config.display()))?;
             let config: BenchConfig = serde_yaml::from_str(&text)
                 .with_context(|| format!("parse {}", config.display()))?;
+            let trigger = parse_leader_paced_trigger(
+                &slot_trigger,
+                slot_signal_endpoint.or_else(|| rpcedge_endpoint.clone()),
+                x_token.clone(),
+            )?;
             let rpcedge = if collect_rpcedge {
                 Some(RpcEdgeLeaderCollector {
                     endpoint: rpcedge_endpoint.context(
@@ -178,6 +190,7 @@ async fn main() -> Result<()> {
                     leader_slots,
                     route_strategy: parse_route_strategy(&route_strategy)?,
                     client_aware_harmonic_cu_price_microlamports,
+                    trigger,
                 },
             )
             .await?;
@@ -309,6 +322,27 @@ fn parse_route_strategy(raw: &str) -> Result<LeaderPacedRouteStrategy> {
         "client_aware" | "client-aware" => Ok(LeaderPacedRouteStrategy::ClientAware),
         other => {
             anyhow::bail!("unknown route strategy `{other}`; expected `static` or `client_aware`")
+        }
+    }
+}
+
+fn parse_leader_paced_trigger(
+    raw: &str,
+    endpoint: Option<String>,
+    x_token: Option<String>,
+) -> Result<LeaderPacedTrigger> {
+    match raw.trim() {
+        "rpc_poll" | "rpc-poll" | "poll" => Ok(LeaderPacedTrigger::RpcPoll),
+        "grpc_slot" | "grpc-slot" | "grpc" => {
+            let endpoint = endpoint.context(
+                "--slot-signal-endpoint or RPCEDGE_GRPC_URL is required with --slot-trigger grpc_slot",
+            )?;
+            Ok(LeaderPacedTrigger::GrpcSlot(
+                solana_tx_bench::slot_signal::GrpcSlotSignalConfig { endpoint, x_token },
+            ))
+        }
+        other => {
+            anyhow::bail!("unknown slot trigger `{other}`; expected `grpc_slot` or `rpc_poll`")
         }
     }
 }

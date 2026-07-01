@@ -198,12 +198,15 @@ async fn collect_deshred_once(
     Ok(())
 }
 
-async fn connect_geyser(config: &RpcEdgeCollectConfig) -> Result<GeyserGrpcClient> {
-    let mut builder = GeyserGrpcClient::build_from_shared(config.endpoint.clone())
-        .context("build geyser client")?;
-    if let Some(token) = &config.x_token {
+pub(crate) async fn connect_geyser_endpoint(
+    endpoint: &str,
+    x_token: Option<&str>,
+) -> Result<GeyserGrpcClient> {
+    let mut builder =
+        GeyserGrpcClient::build_from_shared(endpoint.to_string()).context("build geyser client")?;
+    if let Some(token) = x_token {
         builder = builder
-            .x_token(Some(token.clone()))
+            .x_token(Some(token.to_string()))
             .context("configure x-token")?;
     }
     let mut builder = builder
@@ -216,12 +219,16 @@ async fn connect_geyser(config: &RpcEdgeCollectConfig) -> Result<GeyserGrpcClien
         .connect_timeout(Duration::from_secs(5))
         .timeout(Duration::from_secs(5));
 
-    if config.endpoint.starts_with("https://") {
+    if endpoint.starts_with("https://") {
         builder = builder
             .tls_config(ClientTlsConfig::new().with_enabled_roots())
             .context("configure TLS")?;
     }
     builder.connect().await.context("connect geyser")
+}
+
+async fn connect_geyser(config: &RpcEdgeCollectConfig) -> Result<GeyserGrpcClient> {
+    connect_geyser_endpoint(&config.endpoint, config.x_token.as_deref()).await
 }
 
 fn processed_request(account_include: &[String]) -> SubscribeRequest {

@@ -6,6 +6,7 @@ pub mod leader_paced;
 pub mod leader_slots;
 pub mod observations;
 pub mod runner;
+pub mod slot_signal;
 pub mod tx;
 
 pub use adapters::{
@@ -16,7 +17,7 @@ pub use collectors::{collect_rpcedge_observations, CollectRunOutput, RpcEdgeColl
 pub use config::{BenchConfig, ProviderSpec};
 pub use leader_paced::{
     run_leader_paced, LeaderPacedOptions, LeaderPacedRouteStrategy, LeaderPacedRunOutput,
-    RpcEdgeLeaderCollector,
+    LeaderPacedTrigger, RpcEdgeLeaderCollector,
 };
 pub use leader_slots::{LeaderSlotsCaptureConfig, LeaderSlotsSnapshotArtifact};
 pub use observations::{

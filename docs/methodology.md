@@ -78,14 +78,21 @@ cargo run --release -- run-leader-paced \
   --duration-seconds 300 \
   --txs-per-leader-run 1 \
   --leader-run-concurrency 1 \
+  --slot-trigger grpc_slot \
   --capture-leader-slots \
   --collect-rpcedge
 ```
 
-The runner polls the current slot, fetches nearby slot leaders with
-`getSlotLeaders`, groups contiguous slots with the same leader, and sends only
-once per observed leader run. Each transaction is signed just-in-time with a
-fresh blockhash.
+The default trigger is `grpc_slot`: the runner subscribes to RPCEdge
+Yellowstone slot updates and sends from that stream instead of polling
+`getSlot`. It uses captured `getLeaderSlots` snapshots for leader identity,
+client, and geography metadata, refreshing those snapshots when the gRPC slot
+stream approaches the cached horizon. `rpc_poll` remains available only as a
+legacy/debug trigger.
+
+The runner groups contiguous slots with the same leader and sends only once per
+observed leader run. Each transaction is signed just-in-time with a fresh
+blockhash.
 
 `--txs-per-leader-run` controls how many distinct transactions are generated for
 that leader run. `--leader-run-concurrency` controls how many of those
@@ -94,10 +101,12 @@ baselines; set it equal to `txs_per_leader_run` when intentionally measuring a
 small burst into the same leader window.
 
 When `--capture-leader-slots` is set, the runner writes
-`leader-slots-snapshot.json`. That JSON-RPC response is the portable enrichment
-source for leader geography, validator client, route hints, and historical
-landing-latency priors. Store it with the benchmark artifacts; a later report
-should use the saved snapshot rather than fetching a newer leader schedule.
+`leader-slots-snapshot-<start_slot>.json` refresh files, and
+`leader-slots-snapshot.json` for legacy `rpc_poll` runs. Those JSON-RPC
+responses are the portable enrichment source for leader geography, validator
+client, route hints, and historical landing-latency priors. Store them with the
+benchmark artifacts; a later report should use the saved snapshots rather than
+fetching a newer leader schedule.
 
 Suggested ladder:
 
@@ -159,6 +168,12 @@ Observation collection is required for landing metrics. Without
 `--collect-rpcedge` or a separate collector keyed by the same `test_id`, the
 benchmark only knows provider/client ACKs, which are diagnostics rather than
 landing evidence.
+
+For RPCEdge QUIC, ACK means the relay accepted and enqueued the request. It is
+not proof that a TPU/JET backend later sent the transaction successfully.
+Backend callback failures such as leader-side QUIC `disallowed` must be
+interpreted from relay route telemetry and the final deshred/processed
+observation rate.
 
 ## Cohort Analysis
 

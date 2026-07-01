@@ -84,6 +84,7 @@ cargo run --release -- run-leader-paced \
   --duration-seconds 300 \
   --txs-per-leader-run 1 \
   --leader-run-concurrency 1 \
+  --slot-trigger grpc_slot \
   --capture-leader-slots \
   --collect-rpcedge
 ```
@@ -98,6 +99,10 @@ distinct transactions at the same time for each observed leader run. Keep the
 default concurrency of `1` for baseline reports unless you are intentionally
 testing burst behavior.
 
+By default, `run-leader-paced` is driven by the RPCEdge Yellowstone gRPC slot
+stream (`--slot-trigger grpc_slot`). This avoids `getSlot` polling for send
+timing. `--slot-trigger rpc_poll` exists only as a legacy/debug fallback.
+
 `--capture-leader-slots` calls JSON-RPC `getLeaderSlots` before the run and
 writes `leader-slots-snapshot.json` beside the samples. When pointed at
 RPCEdge's RPC gateway, that snapshot can include leader geography, validator
@@ -105,6 +110,10 @@ client, route hints, and historical landing-latency profiles. This makes cohort
 reports reproducible from local artifacts instead of requiring a private
 database join. If `--leader-slots-rpc-url` is omitted, the runner uses the
 `rpc_url` from `bench.yaml`.
+
+In `grpc_slot` mode the runner refreshes the leader-slot snapshot when the
+gRPC-observed slot approaches or leaves the cached horizon. Refresh files are
+written as `leader-slots-snapshot-<start_slot>.json`.
 
 For a QUIC-only RPCEdge sender benchmark, configure a single provider:
 
@@ -131,6 +140,7 @@ leader-paced benchmark twice:
 cargo run --release -- run-leader-paced \
   --config examples/rpcedge-quic-frankfurt.yaml \
   --duration-seconds 1800 \
+  --slot-trigger grpc_slot \
   --capture-leader-slots \
   --collect-rpcedge
 
@@ -139,6 +149,7 @@ cargo run --release -- run-leader-paced \
 cargo run --release -- run-leader-paced \
   --config examples/rpcedge-quic-frankfurt.yaml \
   --duration-seconds 1800 \
+  --slot-trigger grpc_slot \
   --route-strategy client_aware \
   --client-aware-harmonic-cu-price-microlamports 300000 \
   --capture-leader-slots \
@@ -153,6 +164,7 @@ Leader-paced outputs add:
 
 - `leader-sends.ndjson`
 - `leader-slots-snapshot.json`, when `--capture-leader-slots` is enabled
+- `leader-slots-snapshot-<start_slot>.json`, for rolling gRPC-slot refreshes
 - `matched-observations.ndjson`
 - `matched-observation-summary.json`
 - `matched-observation-summary.md`
