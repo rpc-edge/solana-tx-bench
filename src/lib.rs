@@ -1,6 +1,7 @@
 pub mod adapters;
 pub mod artifacts;
 pub mod collectors;
+pub mod compare;
 pub mod config;
 pub mod leader_paced;
 pub mod leader_slots;
@@ -15,6 +16,7 @@ pub use adapters::{
 };
 pub use artifacts::{BenchManifest, BenchSample, BenchSummary};
 pub use collectors::{collect_rpcedge_observations, CollectRunOutput, RpcEdgeCollectConfig};
+pub use compare::{generate_comparison, CompareOptions, ComparisonOutput};
 pub use config::{BenchConfig, ProviderSpec};
 pub use leader_paced::{
     run_leader_paced, LeaderPacedOptions, LeaderPacedRouteStrategy, LeaderPacedRunOutput,

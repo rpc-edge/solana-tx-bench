@@ -14,7 +14,10 @@ Use this template for website-safe benchmark reports.
 
 ## Results
 
-Paste `observation-summary.md` here.
+For a single run, paste `report.md` or `observation-summary.md` here.
+
+For route/provider comparisons, paste `comparison.md` here and link the
+published `index.html` report.
 
 ## Interpretation
 
@@ -22,6 +25,9 @@ Paste `observation-summary.md` here.
 - SubscribeDeshred is pre-processed transaction visibility from the deshred path.
 - The report compares when each source first observed the same signatures.
 - ACK latency is not used for the headline result.
+- Comparison scores use landing latency, landed slots, block position,
+  same-slot rate, and success ratio. Only compare runs with the same transaction
+  shape, sender region, trigger mode, observation source, and fee/tip policy.
 
 ## Links
 

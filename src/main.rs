@@ -1,10 +1,10 @@
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use solana_tx_bench::{
-    collect_rpcedge_observations, generate_report, observation_summary_markdown, run_benchmark,
-    run_leader_paced, summarize_observations, BenchConfig, LeaderPacedOptions,
-    LeaderPacedRouteStrategy, LeaderPacedTrigger, LeaderSlotsCaptureConfig, ObservationEvent,
-    RpcEdgeCollectConfig, RpcEdgeLeaderCollector,
+    collect_rpcedge_observations, generate_comparison, generate_report,
+    observation_summary_markdown, run_benchmark, run_leader_paced, summarize_observations,
+    BenchConfig, CompareOptions, LeaderPacedOptions, LeaderPacedRouteStrategy, LeaderPacedTrigger,
+    LeaderSlotsCaptureConfig, ObservationEvent, RpcEdgeCollectConfig, RpcEdgeLeaderCollector,
 };
 use std::{
     fs,
@@ -101,6 +101,18 @@ enum Command {
     Report {
         #[arg(long)]
         artifact_dir: PathBuf,
+    },
+    Compare {
+        #[arg(long = "artifact-dir", required = true)]
+        artifact_dirs: Vec<PathBuf>,
+        #[arg(long = "label")]
+        labels: Vec<String>,
+        #[arg(long)]
+        output_dir: PathBuf,
+        #[arg(long, default_value = "rpcedge_processed")]
+        primary_source: String,
+        #[arg(long, default_value = "Transaction Landing Comparison")]
+        title: String,
     },
 }
 
@@ -300,6 +312,35 @@ async fn main() -> Result<()> {
             println!("report_json={}", artifact_dir.join("report.json").display());
             println!("report_md={}", artifact_dir.join("report.md").display());
             println!("report_html={}", artifact_dir.join("report.html").display());
+        }
+        Command::Compare {
+            artifact_dirs,
+            labels,
+            output_dir,
+            primary_source,
+            title,
+        } => {
+            let comparison = generate_comparison(CompareOptions {
+                artifact_dirs,
+                labels,
+                output_dir: output_dir.clone(),
+                primary_source,
+                title,
+            })?;
+            println!("title={}", comparison.title);
+            println!("runs={}", comparison.run_count);
+            println!(
+                "comparison_json={}",
+                output_dir.join("comparison.json").display()
+            );
+            println!(
+                "comparison_md={}",
+                output_dir.join("comparison.md").display()
+            );
+            println!(
+                "comparison_html={}",
+                output_dir.join("index.html").display()
+            );
         }
     }
     Ok(())

@@ -181,6 +181,24 @@ The report command writes `report.json`, `report.md`, and `report.html` using
 only local artifacts from the run directory. Leader/client/location cohorts are
 computed from saved `getLeaderSlots` snapshots.
 
+Compare two or more runs:
+
+```bash
+cargo run --release -- compare \
+  --artifact-dir artifacts/<tpu_only_test_id> \
+  --label "TPU QUIC only" \
+  --artifact-dir artifacts/<client_aware_test_id> \
+  --label "Client aware" \
+  --output-dir docs/reports/<comparison_slug> \
+  --title "RPCEdge TPU QUIC vs Client-Aware Routing"
+```
+
+The compare command writes `comparison.json`, `comparison.md`, `comparison.html`,
+and `index.html` for GitHub Pages. It uses a Beam/RPCFast-style score across
+landing milliseconds, landed slots, block position, same-slot rate, and success
+ratio. Provider ACK remains a diagnostic column and is not used as landing
+proof.
+
 Collect matched observations from RPCEdge Yellowstone processed + SubscribeDeshred:
 
 ```bash

@@ -249,6 +249,50 @@ RPCEdge route-attempt telemetry for the actual Jito tip cost when available.
 If only public artifacts are available, label Jito tip cost as unknown or an
 estimate rather than mixing it into exact cost-normalized scores.
 
+## Comparison Scoring
+
+The `compare` command uses a Beam/RPCFast-style scoring model, with one
+important boundary: provider ACK is shown as a diagnostic column only. Landing
+truth comes from matched Yellowstone processed/deshred observations by
+signature.
+
+The score has five buckets:
+
+```text
+landed_ms = 0.2 * avg_score(submit_to_landed_ms)
+          + 0.8 * p90_score(submit_to_landed_ms)
+
+landed_slots = 0.2 * avg_score(landed_slot_delta)
+             + 0.8 * p90_score(landed_slot_delta)
+
+landed_idx = 0.5 * avg_score(processed_slot_index)
+           + 0.5 * p90_score(processed_slot_index)
+
+same_slot = higher_is_better_score(same_slot_landing_rate)
+
+success_ratio = higher_is_better_score(observed_signatures / submitted_signatures)
+
+performance_rate_pct = (
+  landed_ms + landed_slots + landed_idx + same_slot + success_ratio
+) / 5
+```
+
+Latency, slot delta, and block index are lower-is-better metrics normalized
+relative to the best run in the comparison set. Same-slot and success use rates,
+not raw counts, so runs with slightly different sample counts remain comparable.
+
+Only use the performance score for runs that share:
+
+- transaction shape;
+- sender region;
+- slot trigger mode;
+- observation sources;
+- primary landing source;
+- fee and route-tip policy.
+
+If those conditions do not hold, treat the table as descriptive telemetry, not
+a provider ranking.
+
 ## Matched Observation Reports
 
 The core benchmark uses matched-signature comparisons: send
