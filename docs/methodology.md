@@ -127,8 +127,11 @@ second policy for the next five minutes is invalid for performance comparison:
 the scheduled leaders, slot phase, congestion, block-engine state, and fee
 market all changed.
 
-Until paired multi-policy mode exists, the strategies below are route
-availability smoke tests only:
+Use `paired_route_policies` for performance comparisons. The runner sends all
+policy arms concurrently from the same gRPC slot signal and writes a
+`comparison_group_id` into `leader-sends.ndjson` and `samples.ndjson`.
+Single-policy invocations of the strategies below are route availability smoke
+tests only:
 
 1. `tpu_quic_only`: static route set `only: [tpu_quic]` for every leader.
 2. `always_race`: route set `only: [tpu_quic, jito_bundle, harmonic_bundle]`
@@ -173,6 +176,24 @@ policy arms = tpu_quic_only, always_race, software_client_aware
 
 Each policy arm gets its own signed transaction. The report should compare
 policies within `comparison_group_id`, not across adjacent artifact directories.
+Use:
+
+```bash
+cargo run --release -- run-leader-paced \
+  --config bench.yaml \
+  --route-strategy paired_route_policies \
+  --txs-per-leader-run 1 \
+  --leader-run-concurrency 3 \
+  --slot-trigger grpc_slot \
+  --client-aware-harmonic-cu-price-microlamports 300000 \
+  --capture-leader-slots \
+  --collect-rpcedge
+```
+
+In paired mode, `--txs-per-leader-run 1` means one transaction per policy arm,
+not one transaction total. The send loop rotates arm order by leader slot to
+avoid a fixed first-arm bias, but all arms in the group are still submitted in
+one concurrent batch.
 
 Do not treat validators.app `jito=true` as a route selector. That flag is useful
 metadata, but it is broad enough that it can mark most scheduled stake as Jito

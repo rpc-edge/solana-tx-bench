@@ -137,8 +137,31 @@ Route-policy comparisons must use paired samples. Do not run TPU-only for one
 time window and `always_race` for a later time window and call that an equal
 comparison; the leader set, slot phase, network state, and fee market changed.
 
-Until paired multi-policy mode lands, run individual strategies only as route
-availability smoke tests:
+Use `paired_route_policies` for the fair comparison. For each leader run it
+builds one transaction per policy arm and sends all arms from the same gRPC slot
+signal:
+
+```bash
+cargo run --release -- run-leader-paced \
+  --config examples/rpcedge-quic-frankfurt.yaml \
+  --duration-seconds 1800 \
+  --txs-per-leader-run 1 \
+  --leader-run-concurrency 3 \
+  --slot-trigger grpc_slot \
+  --route-strategy paired_route_policies \
+  --client-aware-harmonic-cu-price-microlamports 300000 \
+  --capture-leader-slots \
+  --collect-rpcedge
+```
+
+The paired arms are:
+
+- `tpu_quic_only`: `only: [tpu_quic]`
+- `always_race`: `only: [tpu_quic, jito_bundle, harmonic_bundle]`
+- `software_client_aware`: JitoLabs/BAM/FireBAM get TPU+Jito, Harmonic*
+  gets TPU+Harmonic, everything else gets TPU-only.
+
+Individual strategies are route availability smoke tests only:
 
 ```bash
 # Baseline: static TPU QUIC only from bench.yaml.

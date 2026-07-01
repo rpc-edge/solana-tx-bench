@@ -248,6 +248,27 @@ solana-tx-bench compare \
 The comparison report is also self-contained. It reads only each run's local
 artifact directory and writes a static `index.html` suitable for GitHub Pages.
 
+For route-policy comparisons, prefer artifacts produced by:
+
+```bash
+solana-tx-bench run-leader-paced \
+  --route-strategy paired_route_policies \
+  --slot-trigger grpc_slot \
+  --capture-leader-slots \
+  --collect-rpcedge
+```
+
+Paired samples include:
+
+- `comparison_group_id`: same leader run and same slot signal.
+- `policy_arm`: stable policy arm name, for example `tpu_quic_only`,
+  `always_race`, or `software_client_aware`.
+- `policy_arm_index`: stable arm index before per-group order rotation.
+
+Compare policies within `comparison_group_id`. Separate 5-minute artifact
+directories for TPU-only and always-race are valid route smoke tests, but they
+are not valid A/B performance comparisons.
+
 The scoring model reports five buckets:
 
 - landing latency in milliseconds;

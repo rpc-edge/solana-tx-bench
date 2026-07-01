@@ -43,6 +43,12 @@ pub struct BenchSample {
     pub test_id: String,
     pub iteration: usize,
     pub signature: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comparison_group_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub policy_arm: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub policy_arm_index: Option<u16>,
     pub provider_name: String,
     pub provider_kind: ProviderKind,
     pub accepted: bool,
@@ -75,6 +81,9 @@ impl BenchSample {
         test_id: &str,
         iteration: usize,
         signature: String,
+        comparison_group_id: Option<String>,
+        policy_arm: Option<String>,
+        policy_arm_index: Option<u16>,
         client_started_at: DateTime<Utc>,
         client_finished_at: DateTime<Utc>,
         client_ack_latency_us: u128,
@@ -88,10 +97,13 @@ impl BenchSample {
         ack: ProviderAck,
     ) -> Self {
         Self {
-            schema_version: 2,
+            schema_version: 3,
             test_id: test_id.to_string(),
             iteration,
             signature,
+            comparison_group_id,
+            policy_arm,
+            policy_arm_index,
             provider_name: ack.provider_name,
             provider_kind: ack.provider_kind,
             accepted: ack.accepted,

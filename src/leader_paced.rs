@@ -40,6 +40,7 @@ pub enum LeaderPacedRouteStrategy {
     ClientAware,
     AlwaysRace,
     SoftwareClientAware,
+    PairedRoutePolicies,
 }
 
 impl LeaderPacedRouteStrategy {
@@ -49,7 +50,19 @@ impl LeaderPacedRouteStrategy {
             Self::ClientAware => "client_aware",
             Self::AlwaysRace => "always_race",
             Self::SoftwareClientAware => "software_client_aware",
+            Self::PairedRoutePolicies => "paired_route_policies",
         }
+    }
+
+    fn requires_leader_slots(self) -> bool {
+        matches!(
+            self,
+            Self::ClientAware | Self::SoftwareClientAware | Self::PairedRoutePolicies
+        )
+    }
+
+    fn is_paired(self) -> bool {
+        matches!(self, Self::PairedRoutePolicies)
     }
 }
 
@@ -108,6 +121,12 @@ pub struct LeaderSendEvent {
     pub test_id: String,
     pub iteration: usize,
     pub signature: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comparison_group_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub policy_arm: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub policy_arm_index: Option<u16>,
     pub leader_identity: String,
     pub leader_run_start_slot: u64,
     pub leader_run_end_slot: u64,
@@ -135,6 +154,27 @@ struct LeaderRun {
     end_slot: u64,
 }
 
+#[derive(Debug, Clone)]
+struct PolicyArm {
+    comparison_group_id: Option<String>,
+    policy_arm: Option<String>,
+    policy_arm_index: Option<u16>,
+    route_selection: Option<RouteSelection>,
+}
+
+#[derive(Debug)]
+struct PendingLeaderTx {
+    tx: BenchTx,
+    iteration: usize,
+    comparison_group_id: Option<String>,
+    policy_arm: Option<String>,
+    policy_arm_index: Option<u16>,
+    route_selection: Option<RouteSelection>,
+    leader_metadata: LeaderMetadata,
+    compute_unit_limit: u32,
+    compute_unit_price_microlamports: u64,
+}
+
 pub async fn run_leader_paced(
     config: BenchConfig,
     options: LeaderPacedOptions,
@@ -148,10 +188,11 @@ pub async fn run_leader_paced(
     if options.leader_run_concurrency == 0 {
         bail!("leader_run_concurrency must be greater than zero");
     }
-    if options.route_strategy == LeaderPacedRouteStrategy::ClientAware
-        && options.leader_slots.is_none()
-    {
-        bail!("client-aware route strategy requires --capture-leader-slots");
+    if options.route_strategy.requires_leader_slots() && options.leader_slots.is_none() {
+        bail!(
+            "{} route strategy requires --capture-leader-slots",
+            options.route_strategy.as_str()
+        );
     }
 
     let test_id = config
@@ -273,104 +314,125 @@ pub async fn run_leader_paced(
         if sent_runs.insert(run_key) {
             let leader_metadata =
                 leader_lookup.lookup(send_slot, leader_run.leader_identity.as_str());
-            let route_selection =
-                route_selection_for_strategy(options.route_strategy, &leader_metadata);
-            let compute_unit_price_microlamports =
-                compute_unit_price_for_strategy(&config, &options, &leader_metadata);
-            let tx_config = TxBuildConfig {
-                rpc_url: config.rpc_url.clone(),
-                lamports: config.lamports,
-                compute_unit_limit: config.compute_unit_limit,
-                compute_unit_price_microlamports,
-            };
             let blockhash = rpc.get_latest_blockhash().context("get latest blockhash")?;
-            let mut pending = Vec::with_capacity(options.txs_per_leader_run);
-            for _ in 0..options.txs_per_leader_run {
-                let estimated_next =
-                    estimated_spent.saturating_add(estimated_transaction_spend(&tx_config));
-                if let Some(max) = config.max_spend_lamports {
-                    if estimated_next > max {
-                        bail!(
-                            "spend cap exceeded before tx {iteration}: estimated_next_total={} max={max}",
-                            estimated_next
-                        );
-                    }
-                }
+            let mut pending = Vec::new();
+            for group_index in 0..options.txs_per_leader_run {
+                let comparison_group_id =
+                    comparison_group_id_for(&test_id, &leader_run, send_slot, group_index);
+                let mut arms = policy_arms_for_strategy(
+                    options.route_strategy,
+                    &leader_metadata,
+                    comparison_group_id,
+                );
+                rotate_policy_arms(&mut arms, leader_run.start_slot, group_index);
 
-                let tx =
-                    build_transaction_with_blockhash(&tx_config, &payer, iteration, blockhash)?;
-                estimated_spent = estimated_spent.saturating_add(tx.estimated_spend_lamports);
-                let sent_at = Utc::now();
+                for arm in arms {
+                    let compute_unit_price_microlamports = compute_unit_price_for_selection(
+                        &config,
+                        &options,
+                        arm.route_selection.as_ref(),
+                    );
+                    let tx_config = TxBuildConfig {
+                        rpc_url: config.rpc_url.clone(),
+                        lamports: config.lamports,
+                        compute_unit_limit: config.compute_unit_limit,
+                        compute_unit_price_microlamports,
+                    };
+                    let estimated_next =
+                        estimated_spent.saturating_add(estimated_transaction_spend(&tx_config));
+                    if let Some(max) = config.max_spend_lamports {
+                        if estimated_next > max {
+                            bail!(
+                                "spend cap exceeded before tx {iteration}: estimated_next_total={} max={max}",
+                                estimated_next
+                            );
+                        }
+                    }
+
+                    let tx =
+                        build_transaction_with_blockhash(&tx_config, &payer, iteration, blockhash)?;
+                    estimated_spent = estimated_spent.saturating_add(tx.estimated_spend_lamports);
+                    pending.push(PendingLeaderTx {
+                        tx,
+                        iteration,
+                        comparison_group_id: arm.comparison_group_id,
+                        policy_arm: arm.policy_arm,
+                        policy_arm_index: arm.policy_arm_index,
+                        route_selection: arm.route_selection,
+                        leader_metadata: leader_metadata.clone(),
+                        compute_unit_limit: tx_config.compute_unit_limit,
+                        compute_unit_price_microlamports,
+                    });
+                    iteration += 1;
+                }
+            }
+
+            let send_batch_at = Utc::now();
+            for pending_tx in &pending {
                 let event = LeaderSendEvent {
-                    schema_version: 2,
+                    schema_version: 3,
                     test_id: test_id.clone(),
-                    iteration,
-                    signature: tx.signature.to_string(),
+                    iteration: pending_tx.iteration,
+                    signature: pending_tx.tx.signature.to_string(),
+                    comparison_group_id: pending_tx.comparison_group_id.clone(),
+                    policy_arm: pending_tx.policy_arm.clone(),
+                    policy_arm_index: pending_tx.policy_arm_index,
                     leader_identity: leader_run.leader_identity.clone(),
                     leader_run_start_slot: leader_run.start_slot,
                     leader_run_end_slot: leader_run.end_slot,
                     send_slot,
-                    sent_at,
+                    sent_at: send_batch_at,
                     trigger_source: trigger_source.clone(),
                     slot_signal_status: Some(slot_signal.status.clone()),
                     slot_signal_observed_at: Some(slot_signal.observed_at),
-                    leader_client_family: leader_metadata.client_family.clone(),
-                    leader_software_client: leader_metadata.software_client.clone(),
-                    leader_software_client_id: leader_metadata.software_client_id,
-                    route_policy: route_selection
+                    leader_client_family: pending_tx.leader_metadata.client_family.clone(),
+                    leader_software_client: pending_tx.leader_metadata.software_client.clone(),
+                    leader_software_client_id: pending_tx.leader_metadata.software_client_id,
+                    route_policy: pending_tx
+                        .route_selection
                         .as_ref()
                         .map(|selection| selection.policy.clone()),
-                    selected_routes: route_selection
+                    selected_routes: pending_tx
+                        .route_selection
                         .as_ref()
                         .map(|selection| selection.routes.clone())
                         .unwrap_or_default(),
-                    compute_unit_limit: tx_config.compute_unit_limit,
-                    compute_unit_price_microlamports: tx_config.compute_unit_price_microlamports,
-                    estimated_spend_lamports: tx.estimated_spend_lamports,
+                    compute_unit_limit: pending_tx.compute_unit_limit,
+                    compute_unit_price_microlamports: pending_tx.compute_unit_price_microlamports,
+                    estimated_spend_lamports: pending_tx.tx.estimated_spend_lamports,
                 };
                 serde_json::to_writer(&mut leader_sends, &event)
                     .context("write leader send event")?;
                 leader_sends
                     .write_all(b"\n")
                     .context("write leader send newline")?;
-                leader_sends.flush().context("flush leader send event")?;
                 sends.push(event);
-                pending.push((
-                    tx,
-                    sent_at,
-                    iteration,
-                    route_selection.clone(),
-                    leader_metadata.clone(),
-                    tx_config.compute_unit_limit,
-                    tx_config.compute_unit_price_microlamports,
-                ));
-                iteration += 1;
             }
-            for chunk in pending.chunks(options.leader_run_concurrency) {
-                let futures = chunk.iter().map(
-                    |(
-                        tx,
-                        sent_at,
-                        iteration,
-                        route_selection,
-                        leader_metadata,
-                        compute_unit_limit,
-                        compute_unit_price_microlamports,
-                    )| {
-                        send_one_transaction_to_providers(
-                            providers.as_slice(),
-                            test_id.as_str(),
-                            tx,
-                            *sent_at,
-                            *iteration,
-                            timeout,
-                            route_selection.clone(),
-                            leader_metadata.clone(),
-                            *compute_unit_limit,
-                            *compute_unit_price_microlamports,
-                        )
-                    },
-                );
+            leader_sends.flush().context("flush leader send events")?;
+
+            let chunk_size = if options.route_strategy.is_paired() {
+                pending.len().max(1)
+            } else {
+                options.leader_run_concurrency
+            };
+            for chunk in pending.chunks(chunk_size) {
+                let futures = chunk.iter().map(|pending_tx| {
+                    send_one_transaction_to_providers(
+                        providers.as_slice(),
+                        test_id.as_str(),
+                        &pending_tx.tx,
+                        send_batch_at,
+                        pending_tx.iteration,
+                        timeout,
+                        pending_tx.route_selection.clone(),
+                        pending_tx.leader_metadata.clone(),
+                        pending_tx.comparison_group_id.clone(),
+                        pending_tx.policy_arm.clone(),
+                        pending_tx.policy_arm_index,
+                        pending_tx.compute_unit_limit,
+                        pending_tx.compute_unit_price_microlamports,
+                    )
+                });
                 for tx_samples in join_all(futures).await {
                     for sample in tx_samples {
                         writer.write_sample(&sample)?;
@@ -500,6 +562,9 @@ async fn send_one_transaction_to_providers(
     timeout: Duration,
     route_selection: Option<RouteSelection>,
     leader_metadata: LeaderMetadata,
+    comparison_group_id: Option<String>,
+    policy_arm: Option<String>,
+    policy_arm_index: Option<u16>,
     compute_unit_limit: u32,
     compute_unit_price_microlamports: u64,
 ) -> Vec<BenchSample> {
@@ -525,6 +590,9 @@ async fn send_one_transaction_to_providers(
                 test_id,
                 iteration,
                 tx.signature.to_string(),
+                comparison_group_id.clone(),
+                policy_arm.clone(),
+                policy_arm_index,
                 sent_at,
                 client_finished_at,
                 client_ack_latency_us,
@@ -734,15 +802,78 @@ fn route_selection_for_strategy(
             };
             Some(RouteSelection::only(policy, routes))
         }
+        LeaderPacedRouteStrategy::PairedRoutePolicies => None,
     }
 }
 
-fn compute_unit_price_for_strategy(
+fn policy_arms_for_strategy(
+    strategy: LeaderPacedRouteStrategy,
+    leader_metadata: &LeaderMetadata,
+    comparison_group_id: Option<String>,
+) -> Vec<PolicyArm> {
+    if strategy == LeaderPacedRouteStrategy::PairedRoutePolicies {
+        return vec![
+            PolicyArm {
+                comparison_group_id: comparison_group_id.clone(),
+                policy_arm: Some("tpu_quic_only".to_string()),
+                policy_arm_index: Some(0),
+                route_selection: Some(RouteSelection::only("tpu_quic_only", ["tpu_quic"])),
+            },
+            PolicyArm {
+                comparison_group_id: comparison_group_id.clone(),
+                policy_arm: Some("always_race".to_string()),
+                policy_arm_index: Some(1),
+                route_selection: route_selection_for_strategy(
+                    LeaderPacedRouteStrategy::AlwaysRace,
+                    leader_metadata,
+                ),
+            },
+            PolicyArm {
+                comparison_group_id,
+                policy_arm: Some("software_client_aware".to_string()),
+                policy_arm_index: Some(2),
+                route_selection: route_selection_for_strategy(
+                    LeaderPacedRouteStrategy::SoftwareClientAware,
+                    leader_metadata,
+                ),
+            },
+        ];
+    }
+
+    vec![PolicyArm {
+        comparison_group_id: None,
+        policy_arm: None,
+        policy_arm_index: None,
+        route_selection: route_selection_for_strategy(strategy, leader_metadata),
+    }]
+}
+
+fn rotate_policy_arms(arms: &mut [PolicyArm], leader_run_start_slot: u64, group_index: usize) {
+    if arms.len() <= 1 {
+        return;
+    }
+    let rotate_by = (leader_run_start_slot as usize + group_index) % arms.len();
+    arms.rotate_left(rotate_by);
+}
+
+fn comparison_group_id_for(
+    test_id: &str,
+    leader_run: &LeaderRun,
+    send_slot: u64,
+    group_index: usize,
+) -> Option<String> {
+    Some(format!(
+        "{test_id}:{}:{}:{}:{group_index}",
+        leader_run.leader_identity, leader_run.start_slot, send_slot
+    ))
+}
+
+fn compute_unit_price_for_selection(
     config: &BenchConfig,
     options: &LeaderPacedOptions,
-    leader_metadata: &LeaderMetadata,
+    route_selection: Option<&RouteSelection>,
 ) -> u64 {
-    let uses_harmonic = route_selection_for_strategy(options.route_strategy, leader_metadata)
+    let uses_harmonic = route_selection
         .map(|selection| {
             selection
                 .routes
@@ -1029,6 +1160,101 @@ mod tests {
                 .expect("selection");
         assert_eq!(selection.policy, "software_client_aware_tpu_only");
         assert_eq!(selection.routes, vec!["tpu_quic"]);
+    }
+
+    #[test]
+    fn paired_policy_arms_include_all_route_policies_for_bam() {
+        let metadata = LeaderMetadata {
+            client_family: Some("bam".to_string()),
+            software_client: Some("AgaveBam".to_string()),
+            software_client_id: Some(6),
+        };
+        let arms = policy_arms_for_strategy(
+            LeaderPacedRouteStrategy::PairedRoutePolicies,
+            &metadata,
+            Some("group-1".to_string()),
+        );
+        assert_eq!(arms.len(), 3);
+        assert_eq!(
+            arms.iter()
+                .map(|arm| arm.policy_arm.as_deref().unwrap_or(""))
+                .collect::<Vec<_>>(),
+            vec!["tpu_quic_only", "always_race", "software_client_aware"]
+        );
+        assert_eq!(
+            arms.iter()
+                .map(|arm| arm.policy_arm_index)
+                .collect::<Vec<_>>(),
+            vec![Some(0), Some(1), Some(2)]
+        );
+        assert!(arms
+            .iter()
+            .all(|arm| arm.comparison_group_id.as_deref() == Some("group-1")));
+        assert_eq!(
+            arms[0].route_selection.as_ref().unwrap().routes,
+            vec!["tpu_quic"]
+        );
+        assert_eq!(
+            arms[1].route_selection.as_ref().unwrap().routes,
+            vec!["tpu_quic", "jito_bundle", "harmonic_bundle"]
+        );
+        assert_eq!(
+            arms[2].route_selection.as_ref().unwrap().routes,
+            vec!["tpu_quic", "jito_bundle"]
+        );
+    }
+
+    #[test]
+    fn paired_policy_arms_keep_plain_agave_software_arm_tpu_only() {
+        let metadata = LeaderMetadata {
+            client_family: Some("agave".to_string()),
+            software_client: Some("Agave".to_string()),
+            software_client_id: Some(3),
+        };
+        let arms = policy_arms_for_strategy(
+            LeaderPacedRouteStrategy::PairedRoutePolicies,
+            &metadata,
+            Some("group-2".to_string()),
+        );
+        let software = arms
+            .iter()
+            .find(|arm| arm.policy_arm.as_deref() == Some("software_client_aware"))
+            .expect("software arm");
+        let selection = software.route_selection.as_ref().expect("selection");
+        assert_eq!(selection.policy, "software_client_aware_tpu_only");
+        assert_eq!(selection.routes, vec!["tpu_quic"]);
+    }
+
+    #[test]
+    fn harmonic_route_selection_uses_configured_cu_price() {
+        let config = BenchConfig {
+            compute_unit_price_microlamports: 0,
+            ..BenchConfig::default()
+        };
+        let options = LeaderPacedOptions {
+            duration: Duration::from_secs(1),
+            txs_per_leader_run: 1,
+            leader_run_concurrency: 1,
+            lookbehind_slots: 0,
+            lookahead_slots: 0,
+            poll_interval: Duration::from_millis(1),
+            observe_extra: Duration::from_secs(0),
+            rpcedge: None,
+            leader_slots: None,
+            route_strategy: LeaderPacedRouteStrategy::PairedRoutePolicies,
+            client_aware_harmonic_cu_price_microlamports: Some(300_000),
+            trigger: LeaderPacedTrigger::RpcPoll,
+        };
+        let selection = RouteSelection::only("always_race", ["tpu_quic", "harmonic_bundle"]);
+        assert_eq!(
+            compute_unit_price_for_selection(&config, &options, Some(&selection)),
+            300_000
+        );
+        let selection = RouteSelection::only("tpu_quic_only", ["tpu_quic"]);
+        assert_eq!(
+            compute_unit_price_for_selection(&config, &options, Some(&selection)),
+            0
+        );
     }
 
     #[test]

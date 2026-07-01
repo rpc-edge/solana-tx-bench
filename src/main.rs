@@ -378,9 +378,12 @@ fn parse_route_strategy(raw: &str) -> Result<LeaderPacedRouteStrategy> {
         "software_client_aware" | "software-client-aware" => {
             Ok(LeaderPacedRouteStrategy::SoftwareClientAware)
         }
+        "paired_route_policies" | "paired-route-policies" | "paired" => {
+            Ok(LeaderPacedRouteStrategy::PairedRoutePolicies)
+        }
         other => {
             anyhow::bail!(
-                "unknown route strategy `{other}`; expected `static`, `client_aware`, `always_race`, or `software_client_aware`"
+                "unknown route strategy `{other}`; expected `static`, `client_aware`, `always_race`, `software_client_aware`, or `paired_route_policies`"
             )
         }
     }

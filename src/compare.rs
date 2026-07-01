@@ -84,8 +84,8 @@ struct SourceStats {
 }
 
 pub fn generate_comparison(options: CompareOptions) -> Result<ComparisonOutput> {
-    if options.artifact_dirs.len() < 2 {
-        bail!("compare requires at least two --artifact-dir values");
+    if options.artifact_dirs.is_empty() {
+        bail!("compare requires at least one --artifact-dir value");
     }
     if !options.labels.is_empty() && options.labels.len() != options.artifact_dirs.len() {
         bail!("--label count must match --artifact-dir count");
@@ -97,7 +97,10 @@ pub fn generate_comparison(options: CompareOptions) -> Result<ComparisonOutput> 
     let mut runs = Vec::with_capacity(options.artifact_dirs.len());
     for (index, artifact_dir) in options.artifact_dirs.iter().enumerate() {
         let label = options.labels.get(index).cloned();
-        runs.push(load_run(artifact_dir, label, &options.primary_source)?);
+        runs.extend(load_runs(artifact_dir, label, &options.primary_source)?);
+    }
+    if runs.len() < 2 {
+        bail!("compare needs at least two runs or one paired artifact with multiple policy arms");
     }
 
     apply_scores(&mut runs);
@@ -144,16 +147,96 @@ pub fn generate_comparison(options: CompareOptions) -> Result<ComparisonOutput> 
     Ok(output)
 }
 
-fn load_run(
+#[derive(Debug)]
+struct RunInputs {
+    samples: Vec<BenchSample>,
+    sends: Vec<LeaderSendEvent>,
+    observations: Vec<ObservationEvent>,
+    manifest: Option<BenchManifest>,
+}
+
+fn load_runs(
     artifact_dir: &Path,
     label: Option<String>,
     requested_primary_source: &str,
-) -> Result<RunComparisonSummary> {
+) -> Result<Vec<RunComparisonSummary>> {
     let samples: Vec<BenchSample> = read_ndjson(&artifact_dir.join("samples.ndjson"))?;
     let sends: Vec<LeaderSendEvent> = read_ndjson(&artifact_dir.join("leader-sends.ndjson"))?;
     let observations: Vec<ObservationEvent> =
         read_ndjson(&artifact_dir.join("matched-observations.ndjson"))?;
     let manifest = read_manifest(artifact_dir)?;
+
+    let paired_arms = sends
+        .iter()
+        .filter_map(|send| send.policy_arm.clone())
+        .collect::<BTreeSet<_>>();
+    if paired_arms.len() > 1 {
+        return paired_arms
+            .into_iter()
+            .map(|arm| {
+                let signatures = sends
+                    .iter()
+                    .filter(|send| send.policy_arm.as_deref() == Some(arm.as_str()))
+                    .map(|send| send.signature.clone())
+                    .collect::<BTreeSet<_>>();
+                let inputs = RunInputs {
+                    samples: samples
+                        .iter()
+                        .filter(|sample| signatures.contains(&sample.signature))
+                        .cloned()
+                        .collect(),
+                    sends: sends
+                        .iter()
+                        .filter(|send| signatures.contains(&send.signature))
+                        .cloned()
+                        .collect(),
+                    observations: observations
+                        .iter()
+                        .filter(|event| signatures.contains(&event.signature))
+                        .cloned()
+                        .collect(),
+                    manifest: manifest.clone(),
+                };
+                let arm_label = label
+                    .as_deref()
+                    .map(|base| format!("{base} / {arm}"))
+                    .unwrap_or_else(|| arm.clone());
+                load_run_from_inputs(
+                    artifact_dir,
+                    Some(arm_label),
+                    requested_primary_source,
+                    inputs,
+                )
+            })
+            .collect();
+    }
+
+    load_run_from_inputs(
+        artifact_dir,
+        label,
+        requested_primary_source,
+        RunInputs {
+            samples,
+            sends,
+            observations,
+            manifest,
+        },
+    )
+    .map(|run| vec![run])
+}
+
+fn load_run_from_inputs(
+    artifact_dir: &Path,
+    label: Option<String>,
+    requested_primary_source: &str,
+    inputs: RunInputs,
+) -> Result<RunComparisonSummary> {
+    let RunInputs {
+        samples,
+        sends,
+        observations,
+        manifest,
+    } = inputs;
 
     let test_id = samples
         .first()
@@ -798,6 +881,31 @@ mod tests {
         assert!(output_dir.join("index.html").exists());
     }
 
+    #[test]
+    fn comparison_splits_single_paired_artifact_by_policy_arm() {
+        let dir = tempdir().expect("tempdir");
+        let run = dir.path().join("paired");
+        fs::create_dir_all(&run).expect("run");
+        write_paired_run(&run);
+        let output_dir = dir.path().join("out");
+
+        let comparison = generate_comparison(CompareOptions {
+            artifact_dirs: vec![run],
+            labels: vec![],
+            output_dir,
+            primary_source: "rpcedge_processed".to_string(),
+            title: "Paired Compare".to_string(),
+        })
+        .expect("comparison");
+
+        assert_eq!(comparison.run_count, 2);
+        assert_eq!(comparison.runs[0].label, "always_race");
+        assert_eq!(comparison.runs[1].label, "tpu_quic_only");
+        assert_eq!(comparison.runs[0].total_runs, 1);
+        assert_eq!(comparison.runs[1].total_runs, 1);
+        assert!(comparison.runs[0].p90_landed_ms < comparison.runs[1].p90_landed_ms);
+    }
+
     fn write_run(path: &Path, test_id: &str, send_slot: u64, observed_ms: i64, slot_delta: u64) {
         fs::write(
             path.join("samples.ndjson"),
@@ -820,6 +928,33 @@ mod tests {
                 "{{\"schema_version\":1,\"test_id\":\"{test_id}\",\"signature\":\"sig-{test_id}\",\"source_name\":\"rpcedge_deshred\",\"source_kind\":\"yellowstone_deshred\",\"observed_at\":\"2026-01-01T00:00:00.{observed_ms:03}Z\",\"submitted_at\":\"2026-01-01T00:00:00Z\",\"slot\":{},\"slot_index\":null,\"source_sequence\":null}}\n{{\"schema_version\":1,\"test_id\":\"{test_id}\",\"signature\":\"sig-{test_id}\",\"source_name\":\"rpcedge_processed\",\"source_kind\":\"yellowstone_processed\",\"observed_at\":\"2026-01-01T00:00:00.{observed_ms:03}Z\",\"submitted_at\":\"2026-01-01T00:00:00Z\",\"slot\":{},\"slot_index\":10,\"source_sequence\":null}}\n",
                 send_slot + slot_delta,
                 send_slot + slot_delta,
+            ),
+        )
+        .expect("observations");
+    }
+
+    fn write_paired_run(path: &Path) {
+        fs::write(
+            path.join("samples.ndjson"),
+            concat!(
+                "{\"schema_version\":3,\"test_id\":\"paired\",\"iteration\":0,\"signature\":\"sig-tpu\",\"comparison_group_id\":\"group-1\",\"policy_arm\":\"tpu_quic_only\",\"policy_arm_index\":0,\"provider_name\":\"p\",\"provider_kind\":\"rpcedge_quic_raw_tx\",\"accepted\":true,\"client_started_at\":\"2026-01-01T00:00:00Z\",\"client_finished_at\":\"2026-01-01T00:00:00.001Z\",\"client_ack_latency_us\":1000,\"provider_send_started_at\":\"2026-01-01T00:00:00Z\",\"provider_send_finished_at\":\"2026-01-01T00:00:00.001Z\",\"provider_ack_latency_us\":1000,\"provider_request_id\":null,\"returned_signature\":\"sig-tpu\",\"status_code\":200,\"error_class\":null,\"error\":null,\"route_policy\":\"tpu_quic_only\",\"route_mode\":\"only\",\"selected_routes\":[\"tpu_quic\"],\"leader_client_family\":\"jito\",\"compute_unit_limit\":660,\"compute_unit_price_microlamports\":0,\"estimated_spend_lamports\":5000}\n",
+                "{\"schema_version\":3,\"test_id\":\"paired\",\"iteration\":1,\"signature\":\"sig-race\",\"comparison_group_id\":\"group-1\",\"policy_arm\":\"always_race\",\"policy_arm_index\":1,\"provider_name\":\"p\",\"provider_kind\":\"rpcedge_quic_raw_tx\",\"accepted\":true,\"client_started_at\":\"2026-01-01T00:00:00Z\",\"client_finished_at\":\"2026-01-01T00:00:00.001Z\",\"client_ack_latency_us\":1000,\"provider_send_started_at\":\"2026-01-01T00:00:00Z\",\"provider_send_finished_at\":\"2026-01-01T00:00:00.001Z\",\"provider_ack_latency_us\":1000,\"provider_request_id\":null,\"returned_signature\":\"sig-race\",\"status_code\":200,\"error_class\":null,\"error\":null,\"route_policy\":\"always_race\",\"route_mode\":\"only\",\"selected_routes\":[\"tpu_quic\",\"jito_bundle\",\"harmonic_bundle\"],\"leader_client_family\":\"jito\",\"compute_unit_limit\":660,\"compute_unit_price_microlamports\":300000,\"estimated_spend_lamports\":5001}\n"
+            ),
+        )
+        .expect("samples");
+        fs::write(
+            path.join("leader-sends.ndjson"),
+            concat!(
+                "{\"schema_version\":3,\"test_id\":\"paired\",\"iteration\":0,\"signature\":\"sig-tpu\",\"comparison_group_id\":\"group-1\",\"policy_arm\":\"tpu_quic_only\",\"policy_arm_index\":0,\"leader_identity\":\"leader\",\"leader_run_start_slot\":100,\"leader_run_end_slot\":103,\"send_slot\":100,\"sent_at\":\"2026-01-01T00:00:00Z\",\"trigger_source\":\"grpc_slot\",\"slot_signal_status\":null,\"slot_signal_observed_at\":null,\"leader_client_family\":\"jito\",\"route_policy\":\"tpu_quic_only\",\"selected_routes\":[\"tpu_quic\"],\"compute_unit_limit\":660,\"compute_unit_price_microlamports\":0,\"estimated_spend_lamports\":5000}\n",
+                "{\"schema_version\":3,\"test_id\":\"paired\",\"iteration\":1,\"signature\":\"sig-race\",\"comparison_group_id\":\"group-1\",\"policy_arm\":\"always_race\",\"policy_arm_index\":1,\"leader_identity\":\"leader\",\"leader_run_start_slot\":100,\"leader_run_end_slot\":103,\"send_slot\":100,\"sent_at\":\"2026-01-01T00:00:00Z\",\"trigger_source\":\"grpc_slot\",\"slot_signal_status\":null,\"slot_signal_observed_at\":null,\"leader_client_family\":\"jito\",\"route_policy\":\"always_race\",\"selected_routes\":[\"tpu_quic\",\"jito_bundle\",\"harmonic_bundle\"],\"compute_unit_limit\":660,\"compute_unit_price_microlamports\":300000,\"estimated_spend_lamports\":5001}\n"
+            ),
+        )
+        .expect("sends");
+        fs::write(
+            path.join("matched-observations.ndjson"),
+            concat!(
+                "{\"schema_version\":1,\"test_id\":\"paired\",\"signature\":\"sig-tpu\",\"source_name\":\"rpcedge_processed\",\"source_kind\":\"yellowstone_processed\",\"observed_at\":\"2026-01-01T00:00:00.300Z\",\"submitted_at\":\"2026-01-01T00:00:00Z\",\"slot\":101,\"slot_index\":90,\"source_sequence\":null}\n",
+                "{\"schema_version\":1,\"test_id\":\"paired\",\"signature\":\"sig-race\",\"source_name\":\"rpcedge_processed\",\"source_kind\":\"yellowstone_processed\",\"observed_at\":\"2026-01-01T00:00:00.100Z\",\"submitted_at\":\"2026-01-01T00:00:00Z\",\"slot\":100,\"slot_index\":10,\"source_sequence\":null}\n"
             ),
         )
         .expect("observations");

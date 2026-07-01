@@ -93,6 +93,21 @@ valid A/B comparisons against other policies unless the artifacts come from a
 paired multi-policy run where all policies are sent inside the same leader
 window and comparison group.
 
+For paired comparison runs, use:
+
+```bash
+solana-tx-bench run-leader-paced \
+  --route-strategy paired_route_policies \
+  --slot-trigger grpc_slot \
+  --capture-leader-slots \
+  --collect-rpcedge
+```
+
+This sends `tpu_quic_only`, `always_race`, and `software_client_aware` arms
+concurrently for every leader run. The configured QUIC provider remains the
+transport; the per-transaction RPCEdge route set is overridden by the selected
+arm.
+
 ## Harmonic
 
 Harmonic bundles use ordinary Solana compute-unit priority fees as the economic
