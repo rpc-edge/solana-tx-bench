@@ -121,8 +121,14 @@ path, not which route would have independently landed fastest.
 
 ## Route Strategies
 
-The first RPCEdge strategy comparison should use two runs with the same
-transaction shape, sender region, observation sources, and leader-paced trigger:
+The first RPCEdge strategy comparison must use paired samples from the same
+leader run and same slot trigger. Running one policy for five minutes and a
+second policy for the next five minutes is invalid for performance comparison:
+the scheduled leaders, slot phase, congestion, block-engine state, and fee
+market all changed.
+
+Until paired multi-policy mode exists, the strategies below are route
+availability smoke tests only:
 
 1. `tpu_quic_only`: static route set `only: [tpu_quic]` for every leader.
 2. `always_race`: route set `only: [tpu_quic, jito_bundle, harmonic_bundle]`
@@ -142,7 +148,7 @@ transaction shape, sender region, observation sources, and leader-paced trigger:
 `client.family`. It is kept for old report reproducibility, but new benchmark
 runs should prefer `always_race` and `software_client_aware`.
 
-Run `software_client_aware` with:
+Run `software_client_aware` as a smoke test with:
 
 ```bash
 cargo run --release -- run-leader-paced \
@@ -156,6 +162,17 @@ The software-client-aware strategy intentionally requires `--capture-leader-slot
 If the leader software metadata is missing, the strategy falls back to TPU-only
 for that transaction and records `software_client_aware_tpu_only` in the
 artifacts.
+
+For a valid policy comparison, the benchmark must write one comparison group per
+leader run:
+
+```text
+comparison_group_id = same leader run + same slot signal
+policy arms = tpu_quic_only, always_race, software_client_aware
+```
+
+Each policy arm gets its own signed transaction. The report should compare
+policies within `comparison_group_id`, not across adjacent artifact directories.
 
 Do not treat validators.app `jito=true` as a route selector. That flag is useful
 metadata, but it is broad enough that it can mark most scheduled stake as Jito

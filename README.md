@@ -133,8 +133,12 @@ providers:
 Use `run` for a tiny fixed-count canary, then `run-leader-paced` for the
 leader/cohort benchmark.
 
-To compare TPU-only against richer RPCEdge routing, run the same leader-paced
-benchmark with explicit route policies:
+Route-policy comparisons must use paired samples. Do not run TPU-only for one
+time window and `always_race` for a later time window and call that an equal
+comparison; the leader set, slot phase, network state, and fee market changed.
+
+Until paired multi-policy mode lands, run individual strategies only as route
+availability smoke tests:
 
 ```bash
 # Baseline: static TPU QUIC only from bench.yaml.
@@ -168,10 +172,10 @@ cargo run --release -- run-leader-paced \
   --collect-rpcedge
 ```
 
-Use the same transaction shape and observation endpoints for both runs. Compare
-submit-to-deshred, submit-to-processed, landed slot delta, processed block
-`slot_index`, success ratio, and extra priority/tip cost. Provider ACK latency
-is diagnostic only.
+Use the same transaction shape and observation endpoints for smoke tests, but
+only paired/matched-policy artifacts are valid for comparing submit-to-deshred,
+submit-to-processed, landed slot delta, processed block `slot_index`, success
+ratio, and extra priority/tip cost. Provider ACK latency is diagnostic only.
 
 Leader-paced outputs add:
 

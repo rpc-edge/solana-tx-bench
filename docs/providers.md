@@ -88,6 +88,11 @@ The older `client_aware` strategy is still available for old report
 reproducibility, but it uses only normalized `client.family` and is too coarse
 for BAM/Rakurai/Raiku semantics.
 
+Single-policy `run-leader-paced` invocations are route smoke tests. They are not
+valid A/B comparisons against other policies unless the artifacts come from a
+paired multi-policy run where all policies are sent inside the same leader
+window and comparison group.
+
 ## Harmonic
 
 Harmonic bundles use ordinary Solana compute-unit priority fees as the economic
