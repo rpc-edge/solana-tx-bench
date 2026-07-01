@@ -108,6 +108,29 @@ computed by a downstream analyzer that joins:
 That separation lets external users compare processed-vs-deshred observation
 behavior even when they do not have Polaris-private validator metadata.
 
+## Landing-Performance Buckets
+
+Beam-style provider benchmarks use the right broad dimensions for transaction
+landing comparisons. This project reports those dimensions as raw measurements
+first:
+
+- **Landing latency in milliseconds**: submit timestamp to deshred and
+  processed observation by signature.
+- **Landing latency in slots**: observed landed slot minus sender-observed slot
+  at submission.
+- **Transaction position within the block**: processed transaction
+  `slot_index`, when the observation source provides it.
+- **Same-slot landing rate**: share of transactions with landed-slot delta
+  equal to zero.
+- **Overall success rate**: observed signatures divided by submitted
+  signatures.
+
+For a single-provider or single-route run, a normalized 0-100 score is usually
+misleading because there is no comparison set. For route-isolated or
+multi-provider runs, the raw buckets above can be normalized against the best
+provider in that run. Tail latency should receive more weight than averages
+because trading systems care more about bad windows than headline mean latency.
+
 ## Matched Observation Reports
 
 The core benchmark uses matched-signature comparisons: send
