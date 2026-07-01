@@ -1,0 +1,2849 @@
+{
+  "schema_version": 1,
+  "test_id": "leader-paced-2026-07-01T095542.712Z",
+  "generated_at": "2026-07-01T10:02:02.145164815Z",
+  "artifact_dir": "/home/sol/solana-tx-bench/artifacts/leader-paced-2026-07-01T095542.712Z",
+  "totals": {
+    "samples": 564,
+    "sent_transactions": 564,
+    "observations": 1112,
+    "matched_signatures": 556,
+    "leader_slot_snapshots": 10
+  },
+  "provider_summaries": [
+    {
+      "provider_name": "rpcedge-quic-frankfurt",
+      "route_policy": "always_race",
+      "selected_routes": [
+        "tpu_quic",
+        "jito_bundle",
+        "harmonic_bundle"
+      ],
+      "count": 188,
+      "accepted": 188,
+      "errors": 0,
+      "ack_p50_ms": 0.358,
+      "ack_p90_ms": 0.461,
+      "ack_p99_ms": 0.63,
+      "ack_max_ms": 0.666
+    },
+    {
+      "provider_name": "rpcedge-quic-frankfurt",
+      "route_policy": "software_client_aware_harmonic",
+      "selected_routes": [
+        "tpu_quic",
+        "harmonic_bundle"
+      ],
+      "count": 45,
+      "accepted": 45,
+      "errors": 0,
+      "ack_p50_ms": 0.351,
+      "ack_p90_ms": 0.463,
+      "ack_p99_ms": 0.628,
+      "ack_max_ms": 0.628
+    },
+    {
+      "provider_name": "rpcedge-quic-frankfurt",
+      "route_policy": "software_client_aware_jito",
+      "selected_routes": [
+        "tpu_quic",
+        "jito_bundle"
+      ],
+      "count": 107,
+      "accepted": 107,
+      "errors": 0,
+      "ack_p50_ms": 0.349,
+      "ack_p90_ms": 0.469,
+      "ack_p99_ms": 0.556,
+      "ack_max_ms": 0.636
+    },
+    {
+      "provider_name": "rpcedge-quic-frankfurt",
+      "route_policy": "software_client_aware_tpu_only",
+      "selected_routes": [
+        "tpu_quic"
+      ],
+      "count": 36,
+      "accepted": 36,
+      "errors": 0,
+      "ack_p50_ms": 0.366,
+      "ack_p90_ms": 0.483,
+      "ack_p99_ms": 0.548,
+      "ack_max_ms": 0.548
+    },
+    {
+      "provider_name": "rpcedge-quic-frankfurt",
+      "route_policy": "tpu_quic_only",
+      "selected_routes": [
+        "tpu_quic"
+      ],
+      "count": 188,
+      "accepted": 188,
+      "errors": 0,
+      "ack_p50_ms": 0.354,
+      "ack_p90_ms": 0.469,
+      "ack_p99_ms": 0.652,
+      "ack_max_ms": 0.663
+    }
+  ],
+  "source_summaries": [
+    {
+      "source_name": "rpcedge_deshred",
+      "count": 556,
+      "first_seen": 556,
+      "submit_to_observed_p50_ms": 103.957,
+      "submit_to_observed_p90_ms": 248.073,
+      "submit_to_observed_p99_ms": 1732.464,
+      "submit_to_observed_max_ms": 20843.274,
+      "same_slot_count": 535,
+      "same_slot_rate": 0.9622302158273381,
+      "landed_slot_delta_p50": 0,
+      "landed_slot_delta_p90": 0,
+      "slot_index_p50": null,
+      "slot_index_p90": null
+    },
+    {
+      "source_name": "rpcedge_processed",
+      "count": 556,
+      "first_seen": 0,
+      "submit_to_observed_p50_ms": 105.168,
+      "submit_to_observed_p90_ms": 248.895,
+      "submit_to_observed_p99_ms": 1734.634,
+      "submit_to_observed_max_ms": 20847.957,
+      "same_slot_count": 535,
+      "same_slot_rate": 0.9622302158273381,
+      "landed_slot_delta_p50": 0,
+      "landed_slot_delta_p90": 0,
+      "slot_index_p50": 479,
+      "slot_index_p90": 1037
+    }
+  ],
+  "cohort_summaries": [
+    {
+      "cohort_kind": "client_family",
+      "cohort_value": "bam",
+      "source_name": "rpcedge_deshred",
+      "count": 221,
+      "submit_to_observed_p50_ms": 95.245,
+      "submit_to_observed_p90_ms": 219.013,
+      "submit_to_observed_p99_ms": 323.889,
+      "submit_to_observed_max_ms": 692.045
+    },
+    {
+      "cohort_kind": "client_family",
+      "cohort_value": "bam",
+      "source_name": "rpcedge_processed",
+      "count": 221,
+      "submit_to_observed_p50_ms": 95.752,
+      "submit_to_observed_p90_ms": 221.381,
+      "submit_to_observed_p99_ms": 324.621,
+      "submit_to_observed_max_ms": 692.902
+    },
+    {
+      "cohort_kind": "client_family",
+      "cohort_value": "harmonic",
+      "source_name": "rpcedge_deshred",
+      "count": 128,
+      "submit_to_observed_p50_ms": 107.213,
+      "submit_to_observed_p90_ms": 556.428,
+      "submit_to_observed_p99_ms": 3060.475,
+      "submit_to_observed_max_ms": 20843.274
+    },
+    {
+      "cohort_kind": "client_family",
+      "cohort_value": "harmonic",
+      "source_name": "rpcedge_processed",
+      "count": 128,
+      "submit_to_observed_p50_ms": 109.855,
+      "submit_to_observed_p90_ms": 557.282,
+      "submit_to_observed_p99_ms": 3062.905,
+      "submit_to_observed_max_ms": 20847.957
+    },
+    {
+      "cohort_kind": "client_family",
+      "cohort_value": "jito",
+      "source_name": "rpcedge_deshred",
+      "count": 99,
+      "submit_to_observed_p50_ms": 78.985,
+      "submit_to_observed_p90_ms": 222.547,
+      "submit_to_observed_p99_ms": 3891.27,
+      "submit_to_observed_max_ms": 3891.27
+    },
+    {
+      "cohort_kind": "client_family",
+      "cohort_value": "jito",
+      "source_name": "rpcedge_processed",
+      "count": 99,
+      "submit_to_observed_p50_ms": 79.434,
+      "submit_to_observed_p90_ms": 224.18,
+      "submit_to_observed_p99_ms": 3892.847,
+      "submit_to_observed_max_ms": 3892.847
+    },
+    {
+      "cohort_kind": "client_family",
+      "cohort_value": "rakurai",
+      "source_name": "rpcedge_deshred",
+      "count": 60,
+      "submit_to_observed_p50_ms": 114.227,
+      "submit_to_observed_p90_ms": 263.896,
+      "submit_to_observed_p99_ms": 468.599,
+      "submit_to_observed_max_ms": 468.599
+    },
+    {
+      "cohort_kind": "client_family",
+      "cohort_value": "rakurai",
+      "source_name": "rpcedge_processed",
+      "count": 60,
+      "submit_to_observed_p50_ms": 116.388,
+      "submit_to_observed_p90_ms": 264.89,
+      "submit_to_observed_p99_ms": 469.94,
+      "submit_to_observed_max_ms": 469.94
+    },
+    {
+      "cohort_kind": "client_family",
+      "cohort_value": "frankendancer",
+      "source_name": "rpcedge_deshred",
+      "count": 27,
+      "submit_to_observed_p50_ms": 113.629,
+      "submit_to_observed_p90_ms": 417.882,
+      "submit_to_observed_p99_ms": 431.414,
+      "submit_to_observed_max_ms": 431.414
+    },
+    {
+      "cohort_kind": "client_family",
+      "cohort_value": "frankendancer",
+      "source_name": "rpcedge_processed",
+      "count": 27,
+      "submit_to_observed_p50_ms": 115.282,
+      "submit_to_observed_p90_ms": 419.814,
+      "submit_to_observed_p99_ms": 432.045,
+      "submit_to_observed_max_ms": 432.045
+    },
+    {
+      "cohort_kind": "client_family",
+      "cohort_value": "agave",
+      "source_name": "rpcedge_deshred",
+      "count": 18,
+      "submit_to_observed_p50_ms": 64.305,
+      "submit_to_observed_p90_ms": 172.65,
+      "submit_to_observed_p99_ms": 172.654,
+      "submit_to_observed_max_ms": 172.654
+    },
+    {
+      "cohort_kind": "client_family",
+      "cohort_value": "agave",
+      "source_name": "rpcedge_processed",
+      "count": 18,
+      "submit_to_observed_p50_ms": 65.543,
+      "submit_to_observed_p90_ms": 174.216,
+      "submit_to_observed_p99_ms": 174.396,
+      "submit_to_observed_max_ms": 174.396
+    },
+    {
+      "cohort_kind": "client_family",
+      "cohort_value": "firedancer",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 108.102,
+      "submit_to_observed_p90_ms": 108.108,
+      "submit_to_observed_p99_ms": 108.108,
+      "submit_to_observed_max_ms": 108.108
+    },
+    {
+      "cohort_kind": "client_family",
+      "cohort_value": "firedancer",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 108.758,
+      "submit_to_observed_p90_ms": 108.793,
+      "submit_to_observed_p99_ms": 108.793,
+      "submit_to_observed_max_ms": 108.793
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "AgaveBam",
+      "source_name": "rpcedge_deshred",
+      "count": 221,
+      "submit_to_observed_p50_ms": 95.245,
+      "submit_to_observed_p90_ms": 219.013,
+      "submit_to_observed_p99_ms": 323.889,
+      "submit_to_observed_max_ms": 692.045
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "AgaveBam",
+      "source_name": "rpcedge_processed",
+      "count": 221,
+      "submit_to_observed_p50_ms": 95.752,
+      "submit_to_observed_p90_ms": 221.381,
+      "submit_to_observed_p99_ms": 324.621,
+      "submit_to_observed_max_ms": 692.902
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "HarmonicAgave",
+      "source_name": "rpcedge_deshred",
+      "count": 104,
+      "submit_to_observed_p50_ms": 104.684,
+      "submit_to_observed_p90_ms": 272.131,
+      "submit_to_observed_p99_ms": 1027.783,
+      "submit_to_observed_max_ms": 20843.274
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "HarmonicAgave",
+      "source_name": "rpcedge_processed",
+      "count": 104,
+      "submit_to_observed_p50_ms": 105.832,
+      "submit_to_observed_p90_ms": 272.694,
+      "submit_to_observed_p99_ms": 1031.371,
+      "submit_to_observed_max_ms": 20847.957
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "JitoLabs",
+      "source_name": "rpcedge_deshred",
+      "count": 99,
+      "submit_to_observed_p50_ms": 78.985,
+      "submit_to_observed_p90_ms": 222.547,
+      "submit_to_observed_p99_ms": 3891.27,
+      "submit_to_observed_max_ms": 3891.27
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "JitoLabs",
+      "source_name": "rpcedge_processed",
+      "count": 99,
+      "submit_to_observed_p50_ms": 79.434,
+      "submit_to_observed_p90_ms": 224.18,
+      "submit_to_observed_p99_ms": 3892.847,
+      "submit_to_observed_max_ms": 3892.847
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "Rakurai",
+      "source_name": "rpcedge_deshred",
+      "count": 60,
+      "submit_to_observed_p50_ms": 114.227,
+      "submit_to_observed_p90_ms": 263.896,
+      "submit_to_observed_p99_ms": 468.599,
+      "submit_to_observed_max_ms": 468.599
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "Rakurai",
+      "source_name": "rpcedge_processed",
+      "count": 60,
+      "submit_to_observed_p50_ms": 116.388,
+      "submit_to_observed_p90_ms": 264.89,
+      "submit_to_observed_p99_ms": 469.94,
+      "submit_to_observed_max_ms": 469.94
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "Frankendancer",
+      "source_name": "rpcedge_deshred",
+      "count": 27,
+      "submit_to_observed_p50_ms": 113.629,
+      "submit_to_observed_p90_ms": 417.882,
+      "submit_to_observed_p99_ms": 431.414,
+      "submit_to_observed_max_ms": 431.414
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "Frankendancer",
+      "source_name": "rpcedge_processed",
+      "count": 27,
+      "submit_to_observed_p50_ms": 115.282,
+      "submit_to_observed_p90_ms": 419.814,
+      "submit_to_observed_p99_ms": 432.045,
+      "submit_to_observed_max_ms": 432.045
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "HarmonicFrankendancer",
+      "source_name": "rpcedge_deshred",
+      "count": 24,
+      "submit_to_observed_p50_ms": 219.116,
+      "submit_to_observed_p90_ms": 1732.479,
+      "submit_to_observed_p99_ms": 3060.475,
+      "submit_to_observed_max_ms": 3060.475
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "HarmonicFrankendancer",
+      "source_name": "rpcedge_processed",
+      "count": 24,
+      "submit_to_observed_p50_ms": 221.821,
+      "submit_to_observed_p90_ms": 1734.647,
+      "submit_to_observed_p99_ms": 3062.905,
+      "submit_to_observed_max_ms": 3062.905
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "Agave",
+      "source_name": "rpcedge_deshred",
+      "count": 18,
+      "submit_to_observed_p50_ms": 64.305,
+      "submit_to_observed_p90_ms": 172.65,
+      "submit_to_observed_p99_ms": 172.654,
+      "submit_to_observed_max_ms": 172.654
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "Agave",
+      "source_name": "rpcedge_processed",
+      "count": 18,
+      "submit_to_observed_p50_ms": 65.543,
+      "submit_to_observed_p90_ms": 174.216,
+      "submit_to_observed_p99_ms": 174.396,
+      "submit_to_observed_max_ms": 174.396
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "Firedancer",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 108.102,
+      "submit_to_observed_p90_ms": 108.108,
+      "submit_to_observed_p99_ms": 108.108,
+      "submit_to_observed_max_ms": 108.108
+    },
+    {
+      "cohort_kind": "client_software",
+      "cohort_value": "Firedancer",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 108.758,
+      "submit_to_observed_p90_ms": 108.793,
+      "submit_to_observed_p99_ms": 108.793,
+      "submit_to_observed_max_ms": 108.793
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-NL-Amsterdam",
+      "source_name": "rpcedge_deshred",
+      "count": 51,
+      "submit_to_observed_p50_ms": 86.54,
+      "submit_to_observed_p90_ms": 112.298,
+      "submit_to_observed_p99_ms": 168.085,
+      "submit_to_observed_max_ms": 168.085
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-NL-Amsterdam",
+      "source_name": "rpcedge_processed",
+      "count": 51,
+      "submit_to_observed_p50_ms": 87.153,
+      "submit_to_observed_p90_ms": 113.74,
+      "submit_to_observed_p99_ms": 169.645,
+      "submit_to_observed_max_ms": 169.645
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-DE-Frankfurt am Main",
+      "source_name": "rpcedge_deshred",
+      "count": 30,
+      "submit_to_observed_p50_ms": 87.326,
+      "submit_to_observed_p90_ms": 257.873,
+      "submit_to_observed_p99_ms": 257.887,
+      "submit_to_observed_max_ms": 257.887
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-DE-Frankfurt am Main",
+      "source_name": "rpcedge_processed",
+      "count": 30,
+      "submit_to_observed_p50_ms": 88.006,
+      "submit_to_observed_p90_ms": 259.68,
+      "submit_to_observed_p99_ms": 259.919,
+      "submit_to_observed_max_ms": 259.919
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16125-LT-Vilnius",
+      "source_name": "rpcedge_deshred",
+      "count": 24,
+      "submit_to_observed_p50_ms": 64.305,
+      "submit_to_observed_p90_ms": 112.682,
+      "submit_to_observed_p99_ms": 112.696,
+      "submit_to_observed_max_ms": 112.696
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16125-LT-Vilnius",
+      "source_name": "rpcedge_processed",
+      "count": 24,
+      "submit_to_observed_p50_ms": 65.543,
+      "submit_to_observed_p90_ms": 113.97,
+      "submit_to_observed_p99_ms": 114.196,
+      "submit_to_observed_max_ms": 114.196
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16276-CA-Beauharnois",
+      "source_name": "rpcedge_deshred",
+      "count": 21,
+      "submit_to_observed_p50_ms": 120.333,
+      "submit_to_observed_p90_ms": 149.054,
+      "submit_to_observed_p99_ms": 149.07,
+      "submit_to_observed_max_ms": 149.07
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16276-CA-Beauharnois",
+      "source_name": "rpcedge_processed",
+      "count": 21,
+      "submit_to_observed_p50_ms": 122.633,
+      "submit_to_observed_p90_ms": 149.684,
+      "submit_to_observed_p99_ms": 150.069,
+      "submit_to_observed_max_ms": 150.069
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "396356-DE-Frankfurt am Main",
+      "source_name": "rpcedge_deshred",
+      "count": 21,
+      "submit_to_observed_p50_ms": 105.44,
+      "submit_to_observed_p90_ms": 468.584,
+      "submit_to_observed_p99_ms": 468.599,
+      "submit_to_observed_max_ms": 468.599
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "396356-DE-Frankfurt am Main",
+      "source_name": "rpcedge_processed",
+      "count": 21,
+      "submit_to_observed_p50_ms": 106.909,
+      "submit_to_observed_p90_ms": 469.923,
+      "submit_to_observed_p99_ms": 469.94,
+      "submit_to_observed_max_ms": 469.94
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-JP-Tokyo",
+      "source_name": "rpcedge_deshred",
+      "count": 18,
+      "submit_to_observed_p50_ms": 217.135,
+      "submit_to_observed_p90_ms": 236.562,
+      "submit_to_observed_p99_ms": 236.567,
+      "submit_to_observed_max_ms": 236.567
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-JP-Tokyo",
+      "source_name": "rpcedge_processed",
+      "count": 18,
+      "submit_to_observed_p50_ms": 218.679,
+      "submit_to_observed_p90_ms": 237.665,
+      "submit_to_observed_p99_ms": 237.671,
+      "submit_to_observed_max_ms": 237.671
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "29066-DE-Frankfurt am Main",
+      "source_name": "rpcedge_deshred",
+      "count": 18,
+      "submit_to_observed_p50_ms": 34.76,
+      "submit_to_observed_p90_ms": 92.141,
+      "submit_to_observed_p99_ms": 92.152,
+      "submit_to_observed_max_ms": 92.152
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "29066-DE-Frankfurt am Main",
+      "source_name": "rpcedge_processed",
+      "count": 18,
+      "submit_to_observed_p50_ms": 36.908,
+      "submit_to_observed_p90_ms": 93.986,
+      "submit_to_observed_p99_ms": 93.996,
+      "submit_to_observed_max_ms": 93.996
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "399460-GB-City of London",
+      "source_name": "rpcedge_deshred",
+      "count": 18,
+      "submit_to_observed_p50_ms": 69.502,
+      "submit_to_observed_p90_ms": 96.536,
+      "submit_to_observed_p99_ms": 99.067,
+      "submit_to_observed_max_ms": 99.067
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "399460-GB-City of London",
+      "source_name": "rpcedge_processed",
+      "count": 18,
+      "submit_to_observed_p50_ms": 71.117,
+      "submit_to_observed_p90_ms": 98.071,
+      "submit_to_observed_p99_ms": 100.369,
+      "submit_to_observed_max_ms": 100.369
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "60068-NL-Amsterdam",
+      "source_name": "rpcedge_deshred",
+      "count": 18,
+      "submit_to_observed_p50_ms": 94.627,
+      "submit_to_observed_p90_ms": 138.905,
+      "submit_to_observed_p99_ms": 154.037,
+      "submit_to_observed_max_ms": 154.037
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "60068-NL-Amsterdam",
+      "source_name": "rpcedge_processed",
+      "count": 18,
+      "submit_to_observed_p50_ms": 95.24,
+      "submit_to_observed_p90_ms": 139.699,
+      "submit_to_observed_p99_ms": 154.739,
+      "submit_to_observed_max_ms": 154.739
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "395201-DE-Rödelheim",
+      "source_name": "rpcedge_deshred",
+      "count": 15,
+      "submit_to_observed_p50_ms": 89.633,
+      "submit_to_observed_p90_ms": 407.455,
+      "submit_to_observed_p99_ms": 407.461,
+      "submit_to_observed_max_ms": 407.461
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "395201-DE-Rödelheim",
+      "source_name": "rpcedge_processed",
+      "count": 15,
+      "submit_to_observed_p50_ms": 90.094,
+      "submit_to_observed_p90_ms": 408.665,
+      "submit_to_observed_p99_ms": 408.671,
+      "submit_to_observed_max_ms": 408.671
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "45102-SG-Asia/Singapore",
+      "source_name": "rpcedge_deshred",
+      "count": 15,
+      "submit_to_observed_p50_ms": 177.136,
+      "submit_to_observed_p90_ms": 216.576,
+      "submit_to_observed_p99_ms": 216.581,
+      "submit_to_observed_max_ms": 216.581
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "45102-SG-Asia/Singapore",
+      "source_name": "rpcedge_processed",
+      "count": 15,
+      "submit_to_observed_p50_ms": 177.903,
+      "submit_to_observed_p90_ms": 218.494,
+      "submit_to_observed_p99_ms": 218.944,
+      "submit_to_observed_max_ms": 218.944
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-NL-Europe/Amsterdam",
+      "source_name": "rpcedge_deshred",
+      "count": 13,
+      "submit_to_observed_p50_ms": 107.205,
+      "submit_to_observed_p90_ms": 318.671,
+      "submit_to_observed_p99_ms": 20843.274,
+      "submit_to_observed_max_ms": 20843.274
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-NL-Europe/Amsterdam",
+      "source_name": "rpcedge_processed",
+      "count": 13,
+      "submit_to_observed_p50_ms": 109.443,
+      "submit_to_observed_p90_ms": 321.516,
+      "submit_to_observed_p99_ms": 20847.957,
+      "submit_to_observed_max_ms": 20847.957
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "214159-SE-Stockholm",
+      "source_name": "rpcedge_deshred",
+      "count": 12,
+      "submit_to_observed_p50_ms": 46.746,
+      "submit_to_observed_p90_ms": 65.099,
+      "submit_to_observed_p99_ms": 65.104,
+      "submit_to_observed_max_ms": 65.104
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "214159-SE-Stockholm",
+      "source_name": "rpcedge_processed",
+      "count": 12,
+      "submit_to_observed_p50_ms": 47.58,
+      "submit_to_observed_p90_ms": 66.379,
+      "submit_to_observed_p99_ms": 66.385,
+      "submit_to_observed_max_ms": 66.385
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "9002-DE-Frankfurt am Main",
+      "source_name": "rpcedge_deshred",
+      "count": 12,
+      "submit_to_observed_p50_ms": 113.16,
+      "submit_to_observed_p90_ms": 113.629,
+      "submit_to_observed_p99_ms": 113.634,
+      "submit_to_observed_max_ms": 113.634
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "9002-DE-Frankfurt am Main",
+      "source_name": "rpcedge_processed",
+      "count": 12,
+      "submit_to_observed_p50_ms": 114.687,
+      "submit_to_observed_p90_ms": 115.282,
+      "submit_to_observed_p99_ms": 115.334,
+      "submit_to_observed_max_ms": 115.334
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "14618-US-Ashburn",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 121.093,
+      "submit_to_observed_p90_ms": 159.348,
+      "submit_to_observed_p99_ms": 159.348,
+      "submit_to_observed_max_ms": 159.348
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "14618-US-Ashburn",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 122.416,
+      "submit_to_observed_p90_ms": 159.726,
+      "submit_to_observed_p99_ms": 159.726,
+      "submit_to_observed_max_ms": 159.726
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16125-LT-Europe/Vilnius",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 65.513,
+      "submit_to_observed_p90_ms": 148.468,
+      "submit_to_observed_p99_ms": 148.468,
+      "submit_to_observed_max_ms": 148.468
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16125-LT-Europe/Vilnius",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 66.356,
+      "submit_to_observed_p90_ms": 148.939,
+      "submit_to_observed_p99_ms": 148.939,
+      "submit_to_observed_max_ms": 148.939
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16276-EN-London",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 252.712,
+      "submit_to_observed_p90_ms": 263.91,
+      "submit_to_observed_p99_ms": 263.91,
+      "submit_to_observed_max_ms": 263.91
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16276-EN-London",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 253.72,
+      "submit_to_observed_p90_ms": 264.96,
+      "submit_to_observed_p99_ms": 264.96,
+      "submit_to_observed_max_ms": 264.96
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-GB-City of London",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 103.877,
+      "submit_to_observed_p90_ms": 145.724,
+      "submit_to_observed_p99_ms": 145.724,
+      "submit_to_observed_max_ms": 145.724
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-GB-City of London",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 105.168,
+      "submit_to_observed_p90_ms": 146.673,
+      "submit_to_observed_p99_ms": 146.673,
+      "submit_to_observed_max_ms": 146.673
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "204770-US-Chicago",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 129.259,
+      "submit_to_observed_p90_ms": 323.894,
+      "submit_to_observed_p99_ms": 323.894,
+      "submit_to_observed_max_ms": 323.894
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "204770-US-Chicago",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 130.638,
+      "submit_to_observed_p90_ms": 324.882,
+      "submit_to_observed_p99_ms": 324.882,
+      "submit_to_observed_max_ms": 324.882
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "262287-NL-Amsterdam",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 114.099,
+      "submit_to_observed_p90_ms": 147.66,
+      "submit_to_observed_p99_ms": 147.66,
+      "submit_to_observed_max_ms": 147.66
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "262287-NL-Amsterdam",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 115.598,
+      "submit_to_observed_p90_ms": 149.637,
+      "submit_to_observed_p99_ms": 149.637,
+      "submit_to_observed_max_ms": 149.637
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "395201-DE-Rüsselsheim am Main",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 91.708,
+      "submit_to_observed_p90_ms": 174.251,
+      "submit_to_observed_p99_ms": 174.251,
+      "submit_to_observed_max_ms": 174.251
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "395201-DE-Rüsselsheim am Main",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 93.104,
+      "submit_to_observed_p90_ms": 175.222,
+      "submit_to_observed_p99_ms": 175.222,
+      "submit_to_observed_max_ms": 175.222
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "396356-GB-London",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 70.538,
+      "submit_to_observed_p90_ms": 100.19,
+      "submit_to_observed_p99_ms": 100.19,
+      "submit_to_observed_max_ms": 100.19
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "396356-GB-London",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 71.17,
+      "submit_to_observed_p90_ms": 102.588,
+      "submit_to_observed_p99_ms": 102.588,
+      "submit_to_observed_max_ms": 102.588
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "400963-GB-Europe/London",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 415.595,
+      "submit_to_observed_p90_ms": 431.414,
+      "submit_to_observed_p99_ms": 431.414,
+      "submit_to_observed_max_ms": 431.414
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "400963-GB-Europe/London",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 419.548,
+      "submit_to_observed_p90_ms": 432.045,
+      "submit_to_observed_p99_ms": 432.045,
+      "submit_to_observed_max_ms": 432.045
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "44051-DE-Frankfurt am Main",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 226.38,
+      "submit_to_observed_p90_ms": 240.321,
+      "submit_to_observed_p99_ms": 240.321,
+      "submit_to_observed_max_ms": 240.321
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "44051-DE-Frankfurt am Main",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 229.955,
+      "submit_to_observed_p90_ms": 241.741,
+      "submit_to_observed_p99_ms": 241.741,
+      "submit_to_observed_max_ms": 241.741
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "7979-LU-Europe/Luxembourg",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 220.977,
+      "submit_to_observed_p90_ms": 248.073,
+      "submit_to_observed_p99_ms": 248.073,
+      "submit_to_observed_max_ms": 248.073
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "7979-LU-Europe/Luxembourg",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 222.047,
+      "submit_to_observed_p90_ms": 248.895,
+      "submit_to_observed_p99_ms": 248.895,
+      "submit_to_observed_max_ms": 248.895
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "1072-IN-Gurugram",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 92.928,
+      "submit_to_observed_p90_ms": 92.945,
+      "submit_to_observed_p99_ms": 92.945,
+      "submit_to_observed_max_ms": 92.945
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "1072-IN-Gurugram",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 93.872,
+      "submit_to_observed_p90_ms": 93.914,
+      "submit_to_observed_p99_ms": 93.914,
+      "submit_to_observed_max_ms": 93.914
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16509-US-Boardman",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 172.642,
+      "submit_to_observed_p90_ms": 172.654,
+      "submit_to_observed_p99_ms": 172.654,
+      "submit_to_observed_max_ms": 172.654
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16509-US-Boardman",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 173.866,
+      "submit_to_observed_p90_ms": 174.396,
+      "submit_to_observed_p99_ms": 174.396,
+      "submit_to_observed_max_ms": 174.396
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-IE-Dublin",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 108.627,
+      "submit_to_observed_p90_ms": 140.112,
+      "submit_to_observed_p99_ms": 140.112,
+      "submit_to_observed_max_ms": 140.112
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-IE-Dublin",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 109.167,
+      "submit_to_observed_p90_ms": 140.614,
+      "submit_to_observed_p99_ms": 140.614,
+      "submit_to_observed_max_ms": 140.614
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-SG-Singapore",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 232.87,
+      "submit_to_observed_p90_ms": 232.887,
+      "submit_to_observed_p99_ms": 232.887,
+      "submit_to_observed_max_ms": 232.887
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-SG-Singapore",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 234.59,
+      "submit_to_observed_p90_ms": 235.824,
+      "submit_to_observed_p99_ms": 235.824,
+      "submit_to_observed_max_ms": 235.824
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-US-America/Chicago",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 56.884,
+      "submit_to_observed_p90_ms": 56.901,
+      "submit_to_observed_p99_ms": 56.901,
+      "submit_to_observed_max_ms": 56.901
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-US-America/Chicago",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 58.859,
+      "submit_to_observed_p90_ms": 59.952,
+      "submit_to_observed_p99_ms": 59.952,
+      "submit_to_observed_max_ms": 59.952
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20473-FR-Aubervilliers",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 30.124,
+      "submit_to_observed_p90_ms": 30.14,
+      "submit_to_observed_p99_ms": 30.14,
+      "submit_to_observed_max_ms": 30.14
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20473-FR-Aubervilliers",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 31.5,
+      "submit_to_observed_p90_ms": 31.519,
+      "submit_to_observed_p99_ms": 31.519,
+      "submit_to_observed_max_ms": 31.519
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "206264-SC-Indian/Mahe",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 95.245,
+      "submit_to_observed_p90_ms": 95.265,
+      "submit_to_observed_p99_ms": 95.265,
+      "submit_to_observed_max_ms": 95.265
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "206264-SC-Indian/Mahe",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 95.752,
+      "submit_to_observed_p90_ms": 95.851,
+      "submit_to_observed_p99_ms": 95.851,
+      "submit_to_observed_max_ms": 95.851
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "214783-NL-Europe/Amsterdam",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 556.428,
+      "submit_to_observed_p90_ms": 591.192,
+      "submit_to_observed_p99_ms": 591.192,
+      "submit_to_observed_max_ms": 591.192
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "214783-NL-Europe/Amsterdam",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 557.282,
+      "submit_to_observed_p90_ms": 592.374,
+      "submit_to_observed_p99_ms": 592.374,
+      "submit_to_observed_max_ms": 592.374
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "262287-US-Miami",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 210.552,
+      "submit_to_observed_p90_ms": 210.572,
+      "submit_to_observed_p99_ms": 210.572,
+      "submit_to_observed_max_ms": 210.572
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "262287-US-Miami",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 211.392,
+      "submit_to_observed_p90_ms": 211.518,
+      "submit_to_observed_p99_ms": 211.518,
+      "submit_to_observed_max_ms": 211.518
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "3402-DE-Frankfurt am Main",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 1732.479,
+      "submit_to_observed_p90_ms": 3060.475,
+      "submit_to_observed_p99_ms": 3060.475,
+      "submit_to_observed_max_ms": 3060.475
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "3402-DE-Frankfurt am Main",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 1734.647,
+      "submit_to_observed_p90_ms": 3062.905,
+      "submit_to_observed_p99_ms": 3062.905,
+      "submit_to_observed_max_ms": 3062.905
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "395201-DE-Offenbach",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 138.889,
+      "submit_to_observed_p90_ms": 3891.27,
+      "submit_to_observed_p99_ms": 3891.27,
+      "submit_to_observed_max_ms": 3891.27
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "395201-DE-Offenbach",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 139.743,
+      "submit_to_observed_p90_ms": 3892.847,
+      "submit_to_observed_p99_ms": 3892.847,
+      "submit_to_observed_max_ms": 3892.847
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "396356-DE-Frankfurt (Oder)",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 28.774,
+      "submit_to_observed_p90_ms": 28.787,
+      "submit_to_observed_p99_ms": 28.787,
+      "submit_to_observed_max_ms": 28.787
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "396356-DE-Frankfurt (Oder)",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 30.265,
+      "submit_to_observed_p90_ms": 30.299,
+      "submit_to_observed_p99_ms": 30.299,
+      "submit_to_observed_max_ms": 30.299
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "396356-GB-City of London",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 110.116,
+      "submit_to_observed_p90_ms": 110.589,
+      "submit_to_observed_p99_ms": 110.589,
+      "submit_to_observed_max_ms": 110.589
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "396356-GB-City of London",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 111.664,
+      "submit_to_observed_p90_ms": 111.906,
+      "submit_to_observed_p99_ms": 111.906,
+      "submit_to_observed_max_ms": 111.906
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "396356-US-Los Angeles",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 172.568,
+      "submit_to_observed_p90_ms": 172.589,
+      "submit_to_observed_p99_ms": 172.589,
+      "submit_to_observed_max_ms": 172.589
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "396356-US-Los Angeles",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 173.197,
+      "submit_to_observed_p90_ms": 173.637,
+      "submit_to_observed_p99_ms": 173.637,
+      "submit_to_observed_max_ms": 173.637
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "47447-DE-Europe/Berlin",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 68.875,
+      "submit_to_observed_p90_ms": 68.89,
+      "submit_to_observed_p99_ms": 68.89,
+      "submit_to_observed_max_ms": 68.89
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "47447-DE-Europe/Berlin",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 69.992,
+      "submit_to_observed_p90_ms": 70.01,
+      "submit_to_observed_p99_ms": 70.01,
+      "submit_to_observed_max_ms": 70.01
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "57043-NL-Europe/Amsterdam",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 40.625,
+      "submit_to_observed_p90_ms": 119.956,
+      "submit_to_observed_p99_ms": 119.956,
+      "submit_to_observed_max_ms": 119.956
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "57043-NL-Europe/Amsterdam",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 41.607,
+      "submit_to_observed_p90_ms": 121.622,
+      "submit_to_observed_p99_ms": 121.622,
+      "submit_to_observed_max_ms": 121.622
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "396356-SG-Asia/Singapore",
+      "source_name": "rpcedge_deshred",
+      "count": 5,
+      "submit_to_observed_p50_ms": 186.333,
+      "submit_to_observed_p90_ms": 223.366,
+      "submit_to_observed_p99_ms": 223.366,
+      "submit_to_observed_max_ms": 223.366
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "396356-SG-Asia/Singapore",
+      "source_name": "rpcedge_processed",
+      "count": 5,
+      "submit_to_observed_p50_ms": 187.249,
+      "submit_to_observed_p90_ms": 224.533,
+      "submit_to_observed_p99_ms": 224.533,
+      "submit_to_observed_max_ms": 224.533
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "1072-US-America/Chicago",
+      "source_name": "rpcedge_deshred",
+      "count": 4,
+      "submit_to_observed_p50_ms": 960.849,
+      "submit_to_observed_p90_ms": 1027.783,
+      "submit_to_observed_p99_ms": 1027.783,
+      "submit_to_observed_max_ms": 1027.783
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "1072-US-America/Chicago",
+      "source_name": "rpcedge_processed",
+      "count": 4,
+      "submit_to_observed_p50_ms": 961.727,
+      "submit_to_observed_p90_ms": 1031.371,
+      "submit_to_observed_p99_ms": 1031.371,
+      "submit_to_observed_max_ms": 1031.371
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16276-DE-Frankfurt",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 41.685,
+      "submit_to_observed_p90_ms": 41.691,
+      "submit_to_observed_p99_ms": 41.691,
+      "submit_to_observed_max_ms": 41.691
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16276-DE-Frankfurt",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 42.696,
+      "submit_to_observed_p90_ms": 42.704,
+      "submit_to_observed_p99_ms": 42.704,
+      "submit_to_observed_max_ms": 42.704
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16509-DE-Frankfurt am Main",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 17.739,
+      "submit_to_observed_p90_ms": 17.745,
+      "submit_to_observed_p99_ms": 17.745,
+      "submit_to_observed_max_ms": 17.745
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16509-DE-Frankfurt am Main",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 19.99,
+      "submit_to_observed_p90_ms": 19.996,
+      "submit_to_observed_p99_ms": 19.996,
+      "submit_to_observed_max_ms": 19.996
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16509-JP-Tokyo",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 290.477,
+      "submit_to_observed_p90_ms": 692.045,
+      "submit_to_observed_p99_ms": 692.045,
+      "submit_to_observed_max_ms": 692.045
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "16509-JP-Tokyo",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 291.299,
+      "submit_to_observed_p90_ms": 692.902,
+      "submit_to_observed_p99_ms": 692.902,
+      "submit_to_observed_max_ms": 692.902
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "18450-US-Ogden",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 190.514,
+      "submit_to_observed_p90_ms": 652.241,
+      "submit_to_observed_p99_ms": 652.241,
+      "submit_to_observed_max_ms": 652.241
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "18450-US-Ogden",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 192.366,
+      "submit_to_observed_p90_ms": 653.266,
+      "submit_to_observed_p99_ms": 653.266,
+      "submit_to_observed_max_ms": 653.266
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-US-Newark",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 1126.618,
+      "submit_to_observed_p90_ms": 1640.582,
+      "submit_to_observed_p99_ms": 1640.582,
+      "submit_to_observed_max_ms": 1640.582
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20326-US-Newark",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 1127.818,
+      "submit_to_observed_p90_ms": 1641.694,
+      "submit_to_observed_p99_ms": 1641.694,
+      "submit_to_observed_max_ms": 1641.694
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20473-JP-Minamishinagawa",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 264.66,
+      "submit_to_observed_p90_ms": 264.669,
+      "submit_to_observed_p99_ms": 264.669,
+      "submit_to_observed_max_ms": 264.669
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20473-JP-Minamishinagawa",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 265.764,
+      "submit_to_observed_p90_ms": 265.778,
+      "submit_to_observed_p99_ms": 265.778,
+      "submit_to_observed_max_ms": 265.778
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20473-SG-Singapore",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 166.1,
+      "submit_to_observed_p90_ms": 166.107,
+      "submit_to_observed_p99_ms": 166.107,
+      "submit_to_observed_max_ms": 166.107
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20473-SG-Singapore",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 167.019,
+      "submit_to_observed_p90_ms": 167.294,
+      "submit_to_observed_p99_ms": 167.294,
+      "submit_to_observed_max_ms": 167.294
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20473-US-Atlanta",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 153.657,
+      "submit_to_observed_p90_ms": 153.662,
+      "submit_to_observed_p99_ms": 153.662,
+      "submit_to_observed_max_ms": 153.662
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20473-US-Atlanta",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 154.612,
+      "submit_to_observed_p90_ms": 154.618,
+      "submit_to_observed_p99_ms": 154.618,
+      "submit_to_observed_max_ms": 154.618
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20473-US-Kent",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 180.672,
+      "submit_to_observed_p90_ms": 180.676,
+      "submit_to_observed_p99_ms": 180.676,
+      "submit_to_observed_max_ms": 180.676
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "20473-US-Kent",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 181.659,
+      "submit_to_observed_p90_ms": 181.667,
+      "submit_to_observed_p99_ms": 181.667,
+      "submit_to_observed_max_ms": 181.667
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "214783-NL-Rotterdam",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 65.578,
+      "submit_to_observed_p90_ms": 65.584,
+      "submit_to_observed_p99_ms": 65.584,
+      "submit_to_observed_max_ms": 65.584
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "214783-NL-Rotterdam",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 66.313,
+      "submit_to_observed_p90_ms": 66.318,
+      "submit_to_observed_p99_ms": 66.318,
+      "submit_to_observed_max_ms": 66.318
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "216444-SG-Singapore",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 164.152,
+      "submit_to_observed_p90_ms": 164.159,
+      "submit_to_observed_p99_ms": 164.159,
+      "submit_to_observed_max_ms": 164.159
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "216444-SG-Singapore",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 165.173,
+      "submit_to_observed_p90_ms": 165.18,
+      "submit_to_observed_p99_ms": 165.18,
+      "submit_to_observed_max_ms": 165.18
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "29802-US-Staten Island",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 121.894,
+      "submit_to_observed_p90_ms": 121.899,
+      "submit_to_observed_p99_ms": 121.899,
+      "submit_to_observed_max_ms": 121.899
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "29802-US-Staten Island",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 122.774,
+      "submit_to_observed_p90_ms": 122.834,
+      "submit_to_observed_p99_ms": 122.834,
+      "submit_to_observed_max_ms": 122.834
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "32209-GB-Europe/London",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 127.286,
+      "submit_to_observed_p90_ms": 127.291,
+      "submit_to_observed_p99_ms": 127.291,
+      "submit_to_observed_max_ms": 127.291
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "32209-GB-Europe/London",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 128.148,
+      "submit_to_observed_p90_ms": 128.153,
+      "submit_to_observed_p99_ms": 128.153,
+      "submit_to_observed_max_ms": 128.153
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "39122-IE-Europe/Dublin",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 56.89,
+      "submit_to_observed_p90_ms": 66.393,
+      "submit_to_observed_p99_ms": 66.393,
+      "submit_to_observed_max_ms": 66.393
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "39122-IE-Europe/Dublin",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 57.85,
+      "submit_to_observed_p90_ms": 66.723,
+      "submit_to_observed_p99_ms": 66.723,
+      "submit_to_observed_max_ms": 66.723
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "395201-DE-Fechenheim",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 24.989,
+      "submit_to_observed_p90_ms": 24.995,
+      "submit_to_observed_p99_ms": 24.995,
+      "submit_to_observed_max_ms": 24.995
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "395201-DE-Fechenheim",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 25.734,
+      "submit_to_observed_p90_ms": 25.744,
+      "submit_to_observed_p99_ms": 25.744,
+      "submit_to_observed_max_ms": 25.744
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "395201-JP-Asia/Tokyo",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 252.218,
+      "submit_to_observed_p90_ms": 272.131,
+      "submit_to_observed_p99_ms": 272.131,
+      "submit_to_observed_max_ms": 272.131
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "395201-JP-Asia/Tokyo",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 253.556,
+      "submit_to_observed_p90_ms": 272.694,
+      "submit_to_observed_p99_ms": 272.694,
+      "submit_to_observed_max_ms": 272.694
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "396356-US-New York",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 113.132,
+      "submit_to_observed_p90_ms": 113.138,
+      "submit_to_observed_p99_ms": 113.138,
+      "submit_to_observed_max_ms": 113.138
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "396356-US-New York",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 115.428,
+      "submit_to_observed_p90_ms": 115.433,
+      "submit_to_observed_p99_ms": 115.433,
+      "submit_to_observed_max_ms": 115.433
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "44486-DE-Frankfurt am Main",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 58.068,
+      "submit_to_observed_p90_ms": 58.073,
+      "submit_to_observed_p99_ms": 58.073,
+      "submit_to_observed_max_ms": 58.073
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "44486-DE-Frankfurt am Main",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 59.888,
+      "submit_to_observed_p90_ms": 59.895,
+      "submit_to_observed_p99_ms": 59.895,
+      "submit_to_observed_max_ms": 59.895
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "45102-JP-Tokyo",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 229.532,
+      "submit_to_observed_p90_ms": 229.537,
+      "submit_to_observed_p99_ms": 229.537,
+      "submit_to_observed_max_ms": 229.537
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "45102-JP-Tokyo",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 230.399,
+      "submit_to_observed_p90_ms": 230.408,
+      "submit_to_observed_p99_ms": 230.408,
+      "submit_to_observed_max_ms": 230.408
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "48014-AL-Tirana",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 67.798,
+      "submit_to_observed_p90_ms": 67.809,
+      "submit_to_observed_p99_ms": 67.809,
+      "submit_to_observed_max_ms": 67.809
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "48014-AL-Tirana",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 70.221,
+      "submit_to_observed_p90_ms": 70.235,
+      "submit_to_observed_p99_ms": 70.235,
+      "submit_to_observed_max_ms": 70.235
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "59642-NL-Amsterdam",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 20.111,
+      "submit_to_observed_p90_ms": 28.772,
+      "submit_to_observed_p99_ms": 28.772,
+      "submit_to_observed_max_ms": 28.772
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "59642-NL-Amsterdam",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 22.438,
+      "submit_to_observed_p90_ms": 29.235,
+      "submit_to_observed_p99_ms": 29.235,
+      "submit_to_observed_max_ms": 29.235
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "8285-LV-Riga",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 143.03,
+      "submit_to_observed_p90_ms": 143.034,
+      "submit_to_observed_p99_ms": 143.034,
+      "submit_to_observed_max_ms": 143.034
+    },
+    {
+      "cohort_kind": "data_center_key",
+      "cohort_value": "8285-LV-Riga",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 144.708,
+      "submit_to_observed_p90_ms": 145.105,
+      "submit_to_observed_p99_ms": 145.105,
+      "submit_to_observed_max_ms": 145.105
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Amsterdam",
+      "source_name": "rpcedge_deshred",
+      "count": 106,
+      "submit_to_observed_p50_ms": 93.997,
+      "submit_to_observed_p90_ms": 147.66,
+      "submit_to_observed_p99_ms": 591.192,
+      "submit_to_observed_max_ms": 20843.274
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Amsterdam",
+      "source_name": "rpcedge_processed",
+      "count": 106,
+      "submit_to_observed_p50_ms": 94.746,
+      "submit_to_observed_p90_ms": 149.637,
+      "submit_to_observed_p99_ms": 592.374,
+      "submit_to_observed_max_ms": 20847.957
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Frankfurt am Main",
+      "source_name": "rpcedge_deshred",
+      "count": 102,
+      "submit_to_observed_p50_ms": 92.44,
+      "submit_to_observed_p90_ms": 257.873,
+      "submit_to_observed_p99_ms": 3060.467,
+      "submit_to_observed_max_ms": 3060.475
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Frankfurt am Main",
+      "source_name": "rpcedge_processed",
+      "count": 102,
+      "submit_to_observed_p50_ms": 94.041,
+      "submit_to_observed_p90_ms": 259.68,
+      "submit_to_observed_p99_ms": 3062.746,
+      "submit_to_observed_max_ms": 3062.905
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "City of London",
+      "source_name": "rpcedge_deshred",
+      "count": 33,
+      "submit_to_observed_p50_ms": 96.064,
+      "submit_to_observed_p90_ms": 110.116,
+      "submit_to_observed_p99_ms": 145.724,
+      "submit_to_observed_max_ms": 145.724
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "City of London",
+      "source_name": "rpcedge_processed",
+      "count": 33,
+      "submit_to_observed_p50_ms": 97.893,
+      "submit_to_observed_p90_ms": 111.664,
+      "submit_to_observed_p99_ms": 146.673,
+      "submit_to_observed_max_ms": 146.673
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Vilnius",
+      "source_name": "rpcedge_deshred",
+      "count": 33,
+      "submit_to_observed_p50_ms": 64.319,
+      "submit_to_observed_p90_ms": 112.696,
+      "submit_to_observed_p99_ms": 148.468,
+      "submit_to_observed_max_ms": 148.468
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Vilnius",
+      "source_name": "rpcedge_processed",
+      "count": 33,
+      "submit_to_observed_p50_ms": 65.785,
+      "submit_to_observed_p90_ms": 114.196,
+      "submit_to_observed_p99_ms": 148.939,
+      "submit_to_observed_max_ms": 148.939
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "London",
+      "source_name": "rpcedge_deshred",
+      "count": 30,
+      "submit_to_observed_p50_ms": 122.837,
+      "submit_to_observed_p90_ms": 417.882,
+      "submit_to_observed_p99_ms": 431.414,
+      "submit_to_observed_max_ms": 431.414
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "London",
+      "source_name": "rpcedge_processed",
+      "count": 30,
+      "submit_to_observed_p50_ms": 123.581,
+      "submit_to_observed_p90_ms": 419.814,
+      "submit_to_observed_p99_ms": 432.045,
+      "submit_to_observed_max_ms": 432.045
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Tokyo",
+      "source_name": "rpcedge_deshred",
+      "count": 24,
+      "submit_to_observed_p50_ms": 224.091,
+      "submit_to_observed_p90_ms": 287.809,
+      "submit_to_observed_p99_ms": 692.045,
+      "submit_to_observed_max_ms": 692.045
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Tokyo",
+      "source_name": "rpcedge_processed",
+      "count": 24,
+      "submit_to_observed_p50_ms": 224.683,
+      "submit_to_observed_p90_ms": 288.866,
+      "submit_to_observed_p99_ms": 692.902,
+      "submit_to_observed_max_ms": 692.902
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Beauharnois",
+      "source_name": "rpcedge_deshred",
+      "count": 21,
+      "submit_to_observed_p50_ms": 120.333,
+      "submit_to_observed_p90_ms": 149.054,
+      "submit_to_observed_p99_ms": 149.07,
+      "submit_to_observed_max_ms": 149.07
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Beauharnois",
+      "source_name": "rpcedge_processed",
+      "count": 21,
+      "submit_to_observed_p50_ms": 122.633,
+      "submit_to_observed_p90_ms": 149.684,
+      "submit_to_observed_p99_ms": 150.069,
+      "submit_to_observed_max_ms": 150.069
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Asia/Singapore",
+      "source_name": "rpcedge_deshred",
+      "count": 20,
+      "submit_to_observed_p50_ms": 186.327,
+      "submit_to_observed_p90_ms": 223.355,
+      "submit_to_observed_p99_ms": 223.366,
+      "submit_to_observed_max_ms": 223.366
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Asia/Singapore",
+      "source_name": "rpcedge_processed",
+      "count": 20,
+      "submit_to_observed_p50_ms": 187.24,
+      "submit_to_observed_p90_ms": 224.522,
+      "submit_to_observed_p99_ms": 224.533,
+      "submit_to_observed_max_ms": 224.533
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Rödelheim",
+      "source_name": "rpcedge_deshred",
+      "count": 15,
+      "submit_to_observed_p50_ms": 89.633,
+      "submit_to_observed_p90_ms": 407.455,
+      "submit_to_observed_p99_ms": 407.461,
+      "submit_to_observed_max_ms": 407.461
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Rödelheim",
+      "source_name": "rpcedge_processed",
+      "count": 15,
+      "submit_to_observed_p50_ms": 90.094,
+      "submit_to_observed_p90_ms": 408.665,
+      "submit_to_observed_p99_ms": 408.671,
+      "submit_to_observed_max_ms": 408.671
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Singapore",
+      "source_name": "rpcedge_deshred",
+      "count": 12,
+      "submit_to_observed_p50_ms": 173.536,
+      "submit_to_observed_p90_ms": 232.882,
+      "submit_to_observed_p99_ms": 232.887,
+      "submit_to_observed_max_ms": 232.887
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Singapore",
+      "source_name": "rpcedge_processed",
+      "count": 12,
+      "submit_to_observed_p50_ms": 174.547,
+      "submit_to_observed_p90_ms": 235.814,
+      "submit_to_observed_p99_ms": 235.824,
+      "submit_to_observed_max_ms": 235.824
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Stockholm",
+      "source_name": "rpcedge_deshred",
+      "count": 12,
+      "submit_to_observed_p50_ms": 46.746,
+      "submit_to_observed_p90_ms": 65.099,
+      "submit_to_observed_p99_ms": 65.104,
+      "submit_to_observed_max_ms": 65.104
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Stockholm",
+      "source_name": "rpcedge_processed",
+      "count": 12,
+      "submit_to_observed_p50_ms": 47.58,
+      "submit_to_observed_p90_ms": 66.379,
+      "submit_to_observed_p99_ms": 66.385,
+      "submit_to_observed_max_ms": 66.385
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "America/Chicago",
+      "source_name": "rpcedge_deshred",
+      "count": 10,
+      "submit_to_observed_p50_ms": 56.901,
+      "submit_to_observed_p90_ms": 1027.783,
+      "submit_to_observed_p99_ms": 1027.783,
+      "submit_to_observed_max_ms": 1027.783
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "America/Chicago",
+      "source_name": "rpcedge_processed",
+      "count": 10,
+      "submit_to_observed_p50_ms": 59.952,
+      "submit_to_observed_p90_ms": 1031.371,
+      "submit_to_observed_p99_ms": 1031.371,
+      "submit_to_observed_max_ms": 1031.371
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Ashburn",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 121.093,
+      "submit_to_observed_p90_ms": 159.348,
+      "submit_to_observed_p99_ms": 159.348,
+      "submit_to_observed_max_ms": 159.348
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Ashburn",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 122.416,
+      "submit_to_observed_p90_ms": 159.726,
+      "submit_to_observed_p99_ms": 159.726,
+      "submit_to_observed_max_ms": 159.726
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Chicago",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 129.259,
+      "submit_to_observed_p90_ms": 323.894,
+      "submit_to_observed_p99_ms": 323.894,
+      "submit_to_observed_max_ms": 323.894
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Chicago",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 130.638,
+      "submit_to_observed_p90_ms": 324.882,
+      "submit_to_observed_p99_ms": 324.882,
+      "submit_to_observed_max_ms": 324.882
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Dublin",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 80.692,
+      "submit_to_observed_p90_ms": 140.112,
+      "submit_to_observed_p99_ms": 140.112,
+      "submit_to_observed_max_ms": 140.112
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Dublin",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 82.262,
+      "submit_to_observed_p90_ms": 140.614,
+      "submit_to_observed_p99_ms": 140.614,
+      "submit_to_observed_max_ms": 140.614
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Luxembourg",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 220.977,
+      "submit_to_observed_p90_ms": 248.073,
+      "submit_to_observed_p99_ms": 248.073,
+      "submit_to_observed_max_ms": 248.073
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Luxembourg",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 222.047,
+      "submit_to_observed_p90_ms": 248.895,
+      "submit_to_observed_p99_ms": 248.895,
+      "submit_to_observed_max_ms": 248.895
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Rüsselsheim am Main",
+      "source_name": "rpcedge_deshred",
+      "count": 9,
+      "submit_to_observed_p50_ms": 91.708,
+      "submit_to_observed_p90_ms": 174.251,
+      "submit_to_observed_p99_ms": 174.251,
+      "submit_to_observed_max_ms": 174.251
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Rüsselsheim am Main",
+      "source_name": "rpcedge_processed",
+      "count": 9,
+      "submit_to_observed_p50_ms": 93.104,
+      "submit_to_observed_p90_ms": 175.222,
+      "submit_to_observed_p99_ms": 175.222,
+      "submit_to_observed_max_ms": 175.222
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Aubervilliers",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 30.124,
+      "submit_to_observed_p90_ms": 30.14,
+      "submit_to_observed_p99_ms": 30.14,
+      "submit_to_observed_max_ms": 30.14
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Aubervilliers",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 31.5,
+      "submit_to_observed_p90_ms": 31.519,
+      "submit_to_observed_p99_ms": 31.519,
+      "submit_to_observed_max_ms": 31.519
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Berlin",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 68.875,
+      "submit_to_observed_p90_ms": 68.89,
+      "submit_to_observed_p99_ms": 68.89,
+      "submit_to_observed_max_ms": 68.89
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Berlin",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 69.992,
+      "submit_to_observed_p90_ms": 70.01,
+      "submit_to_observed_p99_ms": 70.01,
+      "submit_to_observed_max_ms": 70.01
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Boardman",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 172.642,
+      "submit_to_observed_p90_ms": 172.654,
+      "submit_to_observed_p99_ms": 172.654,
+      "submit_to_observed_max_ms": 172.654
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Boardman",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 173.866,
+      "submit_to_observed_p90_ms": 174.396,
+      "submit_to_observed_p99_ms": 174.396,
+      "submit_to_observed_max_ms": 174.396
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Frankfurt (Oder)",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 28.774,
+      "submit_to_observed_p90_ms": 28.787,
+      "submit_to_observed_p99_ms": 28.787,
+      "submit_to_observed_max_ms": 28.787
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Frankfurt (Oder)",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 30.265,
+      "submit_to_observed_p90_ms": 30.299,
+      "submit_to_observed_p99_ms": 30.299,
+      "submit_to_observed_max_ms": 30.299
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Gurugram",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 92.928,
+      "submit_to_observed_p90_ms": 92.945,
+      "submit_to_observed_p99_ms": 92.945,
+      "submit_to_observed_max_ms": 92.945
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Gurugram",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 93.872,
+      "submit_to_observed_p90_ms": 93.914,
+      "submit_to_observed_p99_ms": 93.914,
+      "submit_to_observed_max_ms": 93.914
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Indian/Mahe",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 95.245,
+      "submit_to_observed_p90_ms": 95.265,
+      "submit_to_observed_p99_ms": 95.265,
+      "submit_to_observed_max_ms": 95.265
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Indian/Mahe",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 95.752,
+      "submit_to_observed_p90_ms": 95.851,
+      "submit_to_observed_p99_ms": 95.851,
+      "submit_to_observed_max_ms": 95.851
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Los Angeles",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 172.568,
+      "submit_to_observed_p90_ms": 172.589,
+      "submit_to_observed_p99_ms": 172.589,
+      "submit_to_observed_max_ms": 172.589
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Los Angeles",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 173.197,
+      "submit_to_observed_p90_ms": 173.637,
+      "submit_to_observed_p99_ms": 173.637,
+      "submit_to_observed_max_ms": 173.637
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Miami",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 210.552,
+      "submit_to_observed_p90_ms": 210.572,
+      "submit_to_observed_p99_ms": 210.572,
+      "submit_to_observed_max_ms": 210.572
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Miami",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 211.392,
+      "submit_to_observed_p90_ms": 211.518,
+      "submit_to_observed_p99_ms": 211.518,
+      "submit_to_observed_max_ms": 211.518
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Offenbach",
+      "source_name": "rpcedge_deshred",
+      "count": 6,
+      "submit_to_observed_p50_ms": 138.889,
+      "submit_to_observed_p90_ms": 3891.27,
+      "submit_to_observed_p99_ms": 3891.27,
+      "submit_to_observed_max_ms": 3891.27
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Offenbach",
+      "source_name": "rpcedge_processed",
+      "count": 6,
+      "submit_to_observed_p50_ms": 139.743,
+      "submit_to_observed_p90_ms": 3892.847,
+      "submit_to_observed_p99_ms": 3892.847,
+      "submit_to_observed_max_ms": 3892.847
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Asia/Tokyo",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 252.218,
+      "submit_to_observed_p90_ms": 272.131,
+      "submit_to_observed_p99_ms": 272.131,
+      "submit_to_observed_max_ms": 272.131
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Asia/Tokyo",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 253.556,
+      "submit_to_observed_p90_ms": 272.694,
+      "submit_to_observed_p99_ms": 272.694,
+      "submit_to_observed_max_ms": 272.694
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Atlanta",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 153.657,
+      "submit_to_observed_p90_ms": 153.662,
+      "submit_to_observed_p99_ms": 153.662,
+      "submit_to_observed_max_ms": 153.662
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Atlanta",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 154.612,
+      "submit_to_observed_p90_ms": 154.618,
+      "submit_to_observed_p99_ms": 154.618,
+      "submit_to_observed_max_ms": 154.618
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Fechenheim",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 24.989,
+      "submit_to_observed_p90_ms": 24.995,
+      "submit_to_observed_p99_ms": 24.995,
+      "submit_to_observed_max_ms": 24.995
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Fechenheim",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 25.734,
+      "submit_to_observed_p90_ms": 25.744,
+      "submit_to_observed_p99_ms": 25.744,
+      "submit_to_observed_max_ms": 25.744
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Frankfurt",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 41.685,
+      "submit_to_observed_p90_ms": 41.691,
+      "submit_to_observed_p99_ms": 41.691,
+      "submit_to_observed_max_ms": 41.691
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Frankfurt",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 42.696,
+      "submit_to_observed_p90_ms": 42.704,
+      "submit_to_observed_p99_ms": 42.704,
+      "submit_to_observed_max_ms": 42.704
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Kent",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 180.672,
+      "submit_to_observed_p90_ms": 180.676,
+      "submit_to_observed_p99_ms": 180.676,
+      "submit_to_observed_max_ms": 180.676
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Kent",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 181.659,
+      "submit_to_observed_p90_ms": 181.667,
+      "submit_to_observed_p99_ms": 181.667,
+      "submit_to_observed_max_ms": 181.667
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Minamishinagawa",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 264.66,
+      "submit_to_observed_p90_ms": 264.669,
+      "submit_to_observed_p99_ms": 264.669,
+      "submit_to_observed_max_ms": 264.669
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Minamishinagawa",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 265.764,
+      "submit_to_observed_p90_ms": 265.778,
+      "submit_to_observed_p99_ms": 265.778,
+      "submit_to_observed_max_ms": 265.778
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "New York",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 113.132,
+      "submit_to_observed_p90_ms": 113.138,
+      "submit_to_observed_p99_ms": 113.138,
+      "submit_to_observed_max_ms": 113.138
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "New York",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 115.428,
+      "submit_to_observed_p90_ms": 115.433,
+      "submit_to_observed_p99_ms": 115.433,
+      "submit_to_observed_max_ms": 115.433
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Newark",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 1126.618,
+      "submit_to_observed_p90_ms": 1640.582,
+      "submit_to_observed_p99_ms": 1640.582,
+      "submit_to_observed_max_ms": 1640.582
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Newark",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 1127.818,
+      "submit_to_observed_p90_ms": 1641.694,
+      "submit_to_observed_p99_ms": 1641.694,
+      "submit_to_observed_max_ms": 1641.694
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Ogden",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 190.514,
+      "submit_to_observed_p90_ms": 652.241,
+      "submit_to_observed_p99_ms": 652.241,
+      "submit_to_observed_max_ms": 652.241
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Ogden",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 192.366,
+      "submit_to_observed_p90_ms": 653.266,
+      "submit_to_observed_p99_ms": 653.266,
+      "submit_to_observed_max_ms": 653.266
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Riga",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 143.03,
+      "submit_to_observed_p90_ms": 143.034,
+      "submit_to_observed_p99_ms": 143.034,
+      "submit_to_observed_max_ms": 143.034
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Riga",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 144.708,
+      "submit_to_observed_p90_ms": 145.105,
+      "submit_to_observed_p99_ms": 145.105,
+      "submit_to_observed_max_ms": 145.105
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Rotterdam",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 65.578,
+      "submit_to_observed_p90_ms": 65.584,
+      "submit_to_observed_p99_ms": 65.584,
+      "submit_to_observed_max_ms": 65.584
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Rotterdam",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 66.313,
+      "submit_to_observed_p90_ms": 66.318,
+      "submit_to_observed_p99_ms": 66.318,
+      "submit_to_observed_max_ms": 66.318
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Staten Island",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 121.894,
+      "submit_to_observed_p90_ms": 121.899,
+      "submit_to_observed_p99_ms": 121.899,
+      "submit_to_observed_max_ms": 121.899
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Staten Island",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 122.774,
+      "submit_to_observed_p90_ms": 122.834,
+      "submit_to_observed_p99_ms": 122.834,
+      "submit_to_observed_max_ms": 122.834
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Tirana",
+      "source_name": "rpcedge_deshred",
+      "count": 3,
+      "submit_to_observed_p50_ms": 67.798,
+      "submit_to_observed_p90_ms": 67.809,
+      "submit_to_observed_p99_ms": 67.809,
+      "submit_to_observed_max_ms": 67.809
+    },
+    {
+      "cohort_kind": "leader_city",
+      "cohort_value": "Tirana",
+      "source_name": "rpcedge_processed",
+      "count": 3,
+      "submit_to_observed_p50_ms": 70.221,
+      "submit_to_observed_p90_ms": 70.235,
+      "submit_to_observed_p99_ms": 70.235,
+      "submit_to_observed_max_ms": 70.235
+    },
+    {
+      "cohort_kind": "leader_region",
+      "cohort_value": "Europe",
+      "source_name": "rpcedge_deshred",
+      "count": 373,
+      "submit_to_observed_p50_ms": 91.343,
+      "submit_to_observed_p90_ms": 248.073,
+      "submit_to_observed_p99_ms": 3060.467,
+      "submit_to_observed_max_ms": 20843.274
+    },
+    {
+      "cohort_kind": "leader_region",
+      "cohort_value": "Europe",
+      "source_name": "rpcedge_processed",
+      "count": 373,
+      "submit_to_observed_p50_ms": 92.318,
+      "submit_to_observed_p90_ms": 248.895,
+      "submit_to_observed_p99_ms": 3062.746,
+      "submit_to_observed_max_ms": 20847.957
+    },
+    {
+      "cohort_kind": "leader_region",
+      "cohort_value": "AsiaPacific",
+      "source_name": "rpcedge_deshred",
+      "count": 62,
+      "submit_to_observed_p50_ms": 216.581,
+      "submit_to_observed_p90_ms": 252.218,
+      "submit_to_observed_p99_ms": 692.045,
+      "submit_to_observed_max_ms": 692.045
+    },
+    {
+      "cohort_kind": "leader_region",
+      "cohort_value": "AsiaPacific",
+      "source_name": "rpcedge_processed",
+      "count": 62,
+      "submit_to_observed_p50_ms": 217.883,
+      "submit_to_observed_p90_ms": 253.556,
+      "submit_to_observed_p99_ms": 692.902,
+      "submit_to_observed_max_ms": 692.902
+    },
+    {
+      "cohort_kind": "leader_region",
+      "cohort_value": "Unknown",
+      "source_name": "rpcedge_deshred",
+      "count": 57,
+      "submit_to_observed_p50_ms": 95.259,
+      "submit_to_observed_p90_ms": 143.022,
+      "submit_to_observed_p99_ms": 149.07,
+      "submit_to_observed_max_ms": 149.07
+    },
+    {
+      "cohort_kind": "leader_region",
+      "cohort_value": "Unknown",
+      "source_name": "rpcedge_processed",
+      "count": 57,
+      "submit_to_observed_p50_ms": 95.805,
+      "submit_to_observed_p90_ms": 144.616,
+      "submit_to_observed_p99_ms": 150.069,
+      "submit_to_observed_max_ms": 150.069
+    },
+    {
+      "cohort_kind": "leader_region",
+      "cohort_value": "UsEast",
+      "source_name": "rpcedge_deshred",
+      "count": 33,
+      "submit_to_observed_p50_ms": 159.34,
+      "submit_to_observed_p90_ms": 593.374,
+      "submit_to_observed_p99_ms": 1640.582,
+      "submit_to_observed_max_ms": 1640.582
+    },
+    {
+      "cohort_kind": "leader_region",
+      "cohort_value": "UsEast",
+      "source_name": "rpcedge_processed",
+      "count": 33,
+      "submit_to_observed_p50_ms": 159.623,
+      "submit_to_observed_p90_ms": 594.837,
+      "submit_to_observed_p99_ms": 1641.694,
+      "submit_to_observed_max_ms": 1641.694
+    },
+    {
+      "cohort_kind": "leader_region",
+      "cohort_value": "UsCentral",
+      "source_name": "rpcedge_deshred",
+      "count": 19,
+      "submit_to_observed_p50_ms": 129.251,
+      "submit_to_observed_p90_ms": 960.849,
+      "submit_to_observed_p99_ms": 1027.783,
+      "submit_to_observed_max_ms": 1027.783
+    },
+    {
+      "cohort_kind": "leader_region",
+      "cohort_value": "UsCentral",
+      "source_name": "rpcedge_processed",
+      "count": 19,
+      "submit_to_observed_p50_ms": 130.623,
+      "submit_to_observed_p90_ms": 961.727,
+      "submit_to_observed_p99_ms": 1031.371,
+      "submit_to_observed_max_ms": 1031.371
+    },
+    {
+      "cohort_kind": "leader_region",
+      "cohort_value": "UsWest",
+      "source_name": "rpcedge_deshred",
+      "count": 12,
+      "submit_to_observed_p50_ms": 172.568,
+      "submit_to_observed_p90_ms": 172.65,
+      "submit_to_observed_p99_ms": 172.654,
+      "submit_to_observed_max_ms": 172.654
+    },
+    {
+      "cohort_kind": "leader_region",
+      "cohort_value": "UsWest",
+      "source_name": "rpcedge_processed",
+      "count": 12,
+      "submit_to_observed_p50_ms": 173.197,
+      "submit_to_observed_p90_ms": 174.216,
+      "submit_to_observed_p99_ms": 174.396,
+      "submit_to_observed_max_ms": 174.396
+    },
+    {
+      "cohort_kind": "stake_bucket",
+      "cohort_value": ">=1m_sol",
+      "source_name": "rpcedge_deshred",
+      "count": 389,
+      "submit_to_observed_p50_ms": 103.143,
+      "submit_to_observed_p90_ms": 236.552,
+      "submit_to_observed_p99_ms": 1126.618,
+      "submit_to_observed_max_ms": 20843.274
+    },
+    {
+      "cohort_kind": "stake_bucket",
+      "cohort_value": ">=1m_sol",
+      "source_name": "rpcedge_processed",
+      "count": 389,
+      "submit_to_observed_p50_ms": 104.567,
+      "submit_to_observed_p90_ms": 237.655,
+      "submit_to_observed_p99_ms": 1127.818,
+      "submit_to_observed_max_ms": 20847.957
+    },
+    {
+      "cohort_kind": "stake_bucket",
+      "cohort_value": "100k_500k_sol",
+      "source_name": "rpcedge_deshred",
+      "count": 84,
+      "submit_to_observed_p50_ms": 113.132,
+      "submit_to_observed_p90_ms": 248.046,
+      "submit_to_observed_p99_ms": 1732.479,
+      "submit_to_observed_max_ms": 1732.479
+    },
+    {
+      "cohort_kind": "stake_bucket",
+      "cohort_value": "100k_500k_sol",
+      "source_name": "rpcedge_processed",
+      "count": 84,
+      "submit_to_observed_p50_ms": 115.428,
+      "submit_to_observed_p90_ms": 248.878,
+      "submit_to_observed_p99_ms": 1734.647,
+      "submit_to_observed_max_ms": 1734.647
+    },
+    {
+      "cohort_kind": "stake_bucket",
+      "cohort_value": "500k_1m_sol",
+      "source_name": "rpcedge_deshred",
+      "count": 66,
+      "submit_to_observed_p50_ms": 107.205,
+      "submit_to_observed_p90_ms": 272.131,
+      "submit_to_observed_p99_ms": 3060.475,
+      "submit_to_observed_max_ms": 3060.475
+    },
+    {
+      "cohort_kind": "stake_bucket",
+      "cohort_value": "500k_1m_sol",
+      "source_name": "rpcedge_processed",
+      "count": 66,
+      "submit_to_observed_p50_ms": 109.443,
+      "submit_to_observed_p90_ms": 272.694,
+      "submit_to_observed_p99_ms": 3062.905,
+      "submit_to_observed_max_ms": 3062.905
+    },
+    {
+      "cohort_kind": "stake_bucket",
+      "cohort_value": "<100k_sol",
+      "source_name": "rpcedge_deshred",
+      "count": 17,
+      "submit_to_observed_p50_ms": 153.662,
+      "submit_to_observed_p90_ms": 264.66,
+      "submit_to_observed_p99_ms": 264.669,
+      "submit_to_observed_max_ms": 264.669
+    },
+    {
+      "cohort_kind": "stake_bucket",
+      "cohort_value": "<100k_sol",
+      "source_name": "rpcedge_processed",
+      "count": 17,
+      "submit_to_observed_p50_ms": 154.618,
+      "submit_to_observed_p90_ms": 265.764,
+      "submit_to_observed_p99_ms": 265.778,
+      "submit_to_observed_max_ms": 265.778
+    }
+  ],
+  "tail_events": [
+    {
+      "signature": "4ucVyy7cVnBuj3sDGsh7g3Yki6PUaL89PfDEhHG82SyLd9fbufutuK9ciS1hqQQyMF6ex1hFaPpMEzxc9ihuu45F",
+      "source_name": "rpcedge_processed",
+      "latency_ms": 20847.957,
+      "send_slot": 430070084,
+      "landed_slot": 430070132,
+      "slot_index": 711,
+      "leader_identity": "JUPiTERrZqgf1jUyR7dSkhMx4Kn2qJyekWsg3LT1h4b",
+      "leader_region": "Europe",
+      "leader_city": "Amsterdam",
+      "leader_client": "HarmonicAgave"
+    },
+    {
+      "signature": "4ucVyy7cVnBuj3sDGsh7g3Yki6PUaL89PfDEhHG82SyLd9fbufutuK9ciS1hqQQyMF6ex1hFaPpMEzxc9ihuu45F",
+      "source_name": "rpcedge_deshred",
+      "latency_ms": 20843.274,
+      "send_slot": 430070084,
+      "landed_slot": 430070132,
+      "slot_index": null,
+      "leader_identity": "JUPiTERrZqgf1jUyR7dSkhMx4Kn2qJyekWsg3LT1h4b",
+      "leader_region": "Europe",
+      "leader_city": "Amsterdam",
+      "leader_client": "HarmonicAgave"
+    },
+    {
+      "signature": "5fM5SzgSa37J5QBkRV6cXEmtWsUN4t2wqupkZKWASMHChFTYkCyUMPfx5i65d32XTPXTZd6Sn1aD7zweSLkFt5Lv",
+      "source_name": "rpcedge_processed",
+      "latency_ms": 3892.847,
+      "send_slot": 430070136,
+      "landed_slot": 430070145,
+      "slot_index": 1376,
+      "leader_identity": "EUcJwf7jXskRE6NZBtFPVH2EedNvNYko8LL2WT62XctB",
+      "leader_region": "Europe",
+      "leader_city": "Offenbach",
+      "leader_client": "JitoLabs"
+    },
+    {
+      "signature": "5fM5SzgSa37J5QBkRV6cXEmtWsUN4t2wqupkZKWASMHChFTYkCyUMPfx5i65d32XTPXTZd6Sn1aD7zweSLkFt5Lv",
+      "source_name": "rpcedge_deshred",
+      "latency_ms": 3891.27,
+      "send_slot": 430070136,
+      "landed_slot": 430070145,
+      "slot_index": null,
+      "leader_identity": "EUcJwf7jXskRE6NZBtFPVH2EedNvNYko8LL2WT62XctB",
+      "leader_region": "Europe",
+      "leader_city": "Offenbach",
+      "leader_client": "JitoLabs"
+    },
+    {
+      "signature": "5LbB7t11NWKCeV3PyutmSwPudnGoqRos7Cxm77bcCvq5kTGpC9ekdSpsv2bkz9K7UtBqVXpb43DbEkn5ENHR5SMP",
+      "source_name": "rpcedge_processed",
+      "latency_ms": 3062.905,
+      "send_slot": 430070128,
+      "landed_slot": 430070131,
+      "slot_index": 2129,
+      "leader_identity": "BUokhb8pPF9MZuzW3rHLr6jzakgcz3NDq2PZkpiVv3jb",
+      "leader_region": "Europe",
+      "leader_city": "Frankfurt am Main",
+      "leader_client": "HarmonicFrankendancer"
+    },
+    {
+      "signature": "3QR4Dq7EjMQMwsZsnRfdBGBaZ73ULq9TTTU1tf6uZLJfSqcABi4HbQTG8HV79G4V9vRFEKu9q34gzJq9eTutVeWx",
+      "source_name": "rpcedge_processed",
+      "latency_ms": 3062.746,
+      "send_slot": 430070128,
+      "landed_slot": 430070131,
+      "slot_index": 2127,
+      "leader_identity": "BUokhb8pPF9MZuzW3rHLr6jzakgcz3NDq2PZkpiVv3jb",
+      "leader_region": "Europe",
+      "leader_city": "Frankfurt am Main",
+      "leader_client": "HarmonicFrankendancer"
+    },
+    {
+      "signature": "5LbB7t11NWKCeV3PyutmSwPudnGoqRos7Cxm77bcCvq5kTGpC9ekdSpsv2bkz9K7UtBqVXpb43DbEkn5ENHR5SMP",
+      "source_name": "rpcedge_deshred",
+      "latency_ms": 3060.475,
+      "send_slot": 430070128,
+      "landed_slot": 430070131,
+      "slot_index": null,
+      "leader_identity": "BUokhb8pPF9MZuzW3rHLr6jzakgcz3NDq2PZkpiVv3jb",
+      "leader_region": "Europe",
+      "leader_city": "Frankfurt am Main",
+      "leader_client": "HarmonicFrankendancer"
+    },
+    {
+      "signature": "3QR4Dq7EjMQMwsZsnRfdBGBaZ73ULq9TTTU1tf6uZLJfSqcABi4HbQTG8HV79G4V9vRFEKu9q34gzJq9eTutVeWx",
+      "source_name": "rpcedge_deshred",
+      "latency_ms": 3060.467,
+      "send_slot": 430070128,
+      "landed_slot": 430070131,
+      "slot_index": null,
+      "leader_identity": "BUokhb8pPF9MZuzW3rHLr6jzakgcz3NDq2PZkpiVv3jb",
+      "leader_region": "Europe",
+      "leader_city": "Frankfurt am Main",
+      "leader_client": "HarmonicFrankendancer"
+    },
+    {
+      "signature": "4mvyy7zyqxXynHZegDHTd5ULZCYsmmxstyqM8vH8xAdRCtspaan7BpfYv3zUNyfLXN4k7SGSwFjrabPMCQzf34PJ",
+      "source_name": "rpcedge_processed",
+      "latency_ms": 1734.647,
+      "send_slot": 430069792,
+      "landed_slot": 430069795,
+      "slot_index": 1319,
+      "leader_identity": "nymsHergYedT9CJMgtGMvqXUTGcbs5o3MiWTJUbqTGY",
+      "leader_region": "Europe",
+      "leader_city": "Frankfurt am Main",
+      "leader_client": "HarmonicFrankendancer"
+    },
+    {
+      "signature": "2ap5KW4mJ3T9fjhuynrceSL1DyhRM18DSjnmB7MPDJiUiJ6kHfoniTcak59sUxfwAC1cMgHpLbFUbjmKCeus495k",
+      "source_name": "rpcedge_processed",
+      "latency_ms": 1734.634,
+      "send_slot": 430069792,
+      "landed_slot": 430069795,
+      "slot_index": 1317,
+      "leader_identity": "nymsHergYedT9CJMgtGMvqXUTGcbs5o3MiWTJUbqTGY",
+      "leader_region": "Europe",
+      "leader_city": "Frankfurt am Main",
+      "leader_client": "HarmonicFrankendancer"
+    },
+    {
+      "signature": "4mvyy7zyqxXynHZegDHTd5ULZCYsmmxstyqM8vH8xAdRCtspaan7BpfYv3zUNyfLXN4k7SGSwFjrabPMCQzf34PJ",
+      "source_name": "rpcedge_deshred",
+      "latency_ms": 1732.479,
+      "send_slot": 430069792,
+      "landed_slot": 430069795,
+      "slot_index": null,
+      "leader_identity": "nymsHergYedT9CJMgtGMvqXUTGcbs5o3MiWTJUbqTGY",
+      "leader_region": "Europe",
+      "leader_city": "Frankfurt am Main",
+      "leader_client": "HarmonicFrankendancer"
+    },
+    {
+      "signature": "2ap5KW4mJ3T9fjhuynrceSL1DyhRM18DSjnmB7MPDJiUiJ6kHfoniTcak59sUxfwAC1cMgHpLbFUbjmKCeus495k",
+      "source_name": "rpcedge_deshred",
+      "latency_ms": 1732.464,
+      "send_slot": 430069792,
+      "landed_slot": 430069795,
+      "slot_index": null,
+      "leader_identity": "nymsHergYedT9CJMgtGMvqXUTGcbs5o3MiWTJUbqTGY",
+      "leader_region": "Europe",
+      "leader_city": "Frankfurt am Main",
+      "leader_client": "HarmonicFrankendancer"
+    }
+  ]
+}
