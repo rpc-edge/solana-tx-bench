@@ -51,6 +51,46 @@ routes:
   - tpu_quic
 ```
 
+## RPCEdge QUIC Raw Transaction
+
+Adapter: `rpcedge_quic_raw_tx`
+
+Uses a persistent QUIC connection to the RPCEdge relay and sends raw
+transactions with an RPCEdge route set. Static route selection uses the
+configured `route_mode` and `routes`.
+
+In `run-leader-paced --route-strategy client_aware`, the runner overrides the
+route set per transaction using the scheduled leader client family from the
+captured `getLeaderSlots` snapshot:
+
+- `jito`: `tpu_quic + jito_bundle`
+- `harmonic`: `tpu_quic + harmonic_bundle`
+- anything else or unknown: `tpu_quic`
+
+The selected route policy and selected route list are written to
+`samples.ndjson` and `leader-sends.ndjson`.
+
+## Harmonic
+
+Harmonic bundles use ordinary Solana compute-unit priority fees as the economic
+signal. There is no Jito-style transfer to a tip account for Harmonic, and the
+current public docs do not state a fixed minimum priority-fee floor.
+
+Benchmark implication: configure the Harmonic CU price explicitly, record it in
+the manifest and samples, and treat live provider rejects as evidence. Do not
+document a fixed Harmonic minimum unless Harmonic publishes one or repeated live
+tests establish one.
+
+## Jito Bundle Route
+
+RPCEdge's internal `jito_bundle` route adds a separate Jito tip transaction when
+the route executes. The amount is controlled by relay-side configuration and
+Jito tip-priority logic, not by the caller transaction's compute-unit price.
+
+Private RPCEdge route-attempt telemetry records the added tip signature,
+lamports, and account. Public benchmark artifacts should not assume exact Jito
+tip cost unless that route-attempt data or route-detailed ACK data is present.
+
 ## Adding External Providers
 
 External provider adapters should be added as isolated config variants. Good

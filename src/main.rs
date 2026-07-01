@@ -2,8 +2,8 @@ use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use solana_tx_bench::{
     collect_rpcedge_observations, observation_summary_markdown, run_benchmark, run_leader_paced,
-    summarize_observations, BenchConfig, LeaderPacedOptions, ObservationEvent,
-    RpcEdgeCollectConfig, RpcEdgeLeaderCollector,
+    summarize_observations, BenchConfig, LeaderPacedOptions, LeaderPacedRouteStrategy,
+    LeaderSlotsCaptureConfig, ObservationEvent, RpcEdgeCollectConfig, RpcEdgeLeaderCollector,
 };
 use std::{
     fs,
@@ -32,6 +32,8 @@ enum Command {
         duration_seconds: u64,
         #[arg(long, default_value_t = 1)]
         txs_per_leader_run: usize,
+        #[arg(long, default_value_t = 1)]
+        leader_run_concurrency: usize,
         #[arg(long, default_value_t = 12)]
         lookbehind_slots: u64,
         #[arg(long, default_value_t = 64)]
@@ -48,6 +50,18 @@ enum Command {
         observe_extra_seconds: u64,
         #[arg(long, default_value_t = 2)]
         min_sources: usize,
+        #[arg(long)]
+        capture_leader_slots: bool,
+        #[arg(long, env = "LEADER_SLOTS_RPC_URL")]
+        leader_slots_rpc_url: Option<String>,
+        #[arg(long, env = "RPCEDGE_API_KEY")]
+        leader_slots_api_key: Option<String>,
+        #[arg(long, default_value_t = 512)]
+        leader_slots_lookahead: u64,
+        #[arg(long, default_value = "static")]
+        route_strategy: String,
+        #[arg(long)]
+        client_aware_harmonic_cu_price_microlamports: Option<u64>,
     },
     InitConfig {
         #[arg(long, default_value = "bench.example.yaml")]
@@ -114,6 +128,7 @@ async fn main() -> Result<()> {
             config,
             duration_seconds,
             txs_per_leader_run,
+            leader_run_concurrency,
             lookbehind_slots,
             lookahead_slots,
             poll_ms,
@@ -122,6 +137,12 @@ async fn main() -> Result<()> {
             x_token,
             observe_extra_seconds,
             min_sources,
+            capture_leader_slots,
+            leader_slots_rpc_url,
+            leader_slots_api_key,
+            leader_slots_lookahead,
+            route_strategy,
+            client_aware_harmonic_cu_price_microlamports,
         } => {
             let text = fs::read_to_string(&config)
                 .with_context(|| format!("read {}", config.display()))?;
@@ -138,16 +159,25 @@ async fn main() -> Result<()> {
             } else {
                 None
             };
+            let leader_slots = capture_leader_slots.then(|| LeaderSlotsCaptureConfig {
+                rpc_url: leader_slots_rpc_url.unwrap_or_else(|| config.rpc_url.clone()),
+                api_key: leader_slots_api_key,
+                lookahead_slots: leader_slots_lookahead,
+            });
             let output = run_leader_paced(
                 config,
                 LeaderPacedOptions {
                     duration: std::time::Duration::from_secs(duration_seconds),
                     txs_per_leader_run,
+                    leader_run_concurrency,
                     lookbehind_slots,
                     lookahead_slots,
                     poll_interval: std::time::Duration::from_millis(poll_ms),
                     observe_extra: std::time::Duration::from_secs(observe_extra_seconds),
                     rpcedge,
+                    leader_slots,
+                    route_strategy: parse_route_strategy(&route_strategy)?,
+                    client_aware_harmonic_cu_price_microlamports,
                 },
             )
             .await?;
@@ -174,6 +204,9 @@ async fn main() -> Result<()> {
                         .join("matched-observation-summary.md")
                         .display()
                 );
+            }
+            if let Some(path) = &output.leader_slots_snapshot_path {
+                println!("leader_slots_snapshot={}", path.display());
             }
         }
         Command::InitConfig { output } => {
@@ -268,4 +301,14 @@ fn fmt(value: Option<u128>) -> String {
     value
         .map(|value| value.to_string())
         .unwrap_or_else(|| "-".to_string())
+}
+
+fn parse_route_strategy(raw: &str) -> Result<LeaderPacedRouteStrategy> {
+    match raw.trim() {
+        "static" => Ok(LeaderPacedRouteStrategy::Static),
+        "client_aware" | "client-aware" => Ok(LeaderPacedRouteStrategy::ClientAware),
+        other => {
+            anyhow::bail!("unknown route strategy `{other}`; expected `static` or `client_aware`")
+        }
+    }
 }

@@ -20,7 +20,7 @@ Private enrichment boundary:
 
 ```text
 signature + observed slot from public artifact
-  -> internal shred / geyser / RPC observation tables
+  -> getLeaderSlots snapshot captured during the run
   -> leader cohort, region, validator client, datacenter, customer dimensions
 ```
 
@@ -77,6 +77,8 @@ cargo run --release -- run-leader-paced \
   --config bench.yaml \
   --duration-seconds 300 \
   --txs-per-leader-run 1 \
+  --leader-run-concurrency 1 \
+  --capture-leader-slots \
   --collect-rpcedge
 ```
 
@@ -84,6 +86,18 @@ The runner polls the current slot, fetches nearby slot leaders with
 `getSlotLeaders`, groups contiguous slots with the same leader, and sends only
 once per observed leader run. Each transaction is signed just-in-time with a
 fresh blockhash.
+
+`--txs-per-leader-run` controls how many distinct transactions are generated for
+that leader run. `--leader-run-concurrency` controls how many of those
+transactions are submitted simultaneously. Use concurrency `1` for clean
+baselines; set it equal to `txs_per_leader_run` when intentionally measuring a
+small burst into the same leader window.
+
+When `--capture-leader-slots` is set, the runner writes
+`leader-slots-snapshot.json`. That JSON-RPC response is the portable enrichment
+source for leader geography, validator client, route hints, and historical
+landing-latency priors. Store it with the benchmark artifacts; a later report
+should use the saved snapshot rather than fetching a newer leader schedule.
 
 Suggested ladder:
 
@@ -95,18 +109,71 @@ Suggested ladder:
 Run route-isolated configs first. A multi-route race measures the product-level
 path, not which route would have independently landed fastest.
 
+## Route Strategies
+
+The first RPCEdge strategy comparison should use two runs with the same
+transaction shape, sender region, observation sources, and leader-paced trigger:
+
+1. `tpu_quic_only`: static route set `only: [tpu_quic]` for every leader.
+2. `client_aware`: route set chosen from the scheduled leader client family in
+   the captured `getLeaderSlots` snapshot:
+   - Jito leader: `only: [tpu_quic, jito_bundle]`
+   - Harmonic leader: `only: [tpu_quic, harmonic_bundle]`
+   - all other or unknown clients: `only: [tpu_quic]`
+
+Run `client_aware` with:
+
+```bash
+cargo run --release -- run-leader-paced \
+  --config bench.yaml \
+  --route-strategy client_aware \
+  --capture-leader-slots \
+  --collect-rpcedge
+```
+
+The client-aware strategy intentionally requires `--capture-leader-slots`. If
+the leader client family is missing, the strategy falls back to TPU-only for
+that transaction and records `client_aware_tpu_only` in the artifacts.
+
+For Harmonic leaders, the runner can raise the transaction's compute-unit price
+only for that leader family:
+
+```bash
+--client-aware-harmonic-cu-price-microlamports 300000
+```
+
+As of the current Harmonic public docs, Harmonic does not describe a fixed
+minimum priority-fee floor. It describes Harmonic tips as normal Solana
+compute-unit priority fees, with no separate tip instruction. Treat the
+Harmonic CU price as a tested benchmark variable and record rejects explicitly;
+do not claim a provider minimum unless Harmonic publishes one or live tests prove
+one.
+
+For Jito leaders, `jito_bundle` is an internal RPCEdge route in this benchmark.
+The relay adds the Jito bundle tip transaction when the route executes. The
+benchmark's public fast ACK may not include the added tip signature; private
+RPCEdge route-attempt telemetry records `route_tip_signature`,
+`route_tip_lamports`, and `route_tip_account` for route-causal analysis.
+
+Observation collection is required for landing metrics. Without
+`--collect-rpcedge` or a separate collector keyed by the same `test_id`, the
+benchmark only knows provider/client ACKs, which are diagnostics rather than
+landing evidence.
+
 ## Cohort Analysis
 
-The public artifact includes signatures and observation timestamps. Cohorts such
-as leader region, stake weight, validator client, or leader proximity should be
-computed by a downstream analyzer that joins:
+The public artifact includes signatures, observation timestamps, and optionally
+a `getLeaderSlots` snapshot. Cohorts such as leader region, stake weight,
+validator client, or leader proximity should be computed from:
 
 - observation events by `signature` and `slot`;
 - landed slot / slot index observations;
-- leader schedule and validator metadata;
+- the saved `leader-slots-snapshot.json` response;
 
 That separation lets external users compare processed-vs-deshred observation
-behavior even when they do not have Polaris-private validator metadata.
+behavior without Polaris-private ClickHouse access. Private RPCEdge reports can
+still join deeper internal telemetry, but the public report should be
+reproducible from local artifacts.
 
 ## Landing-Performance Buckets
 
@@ -130,6 +197,32 @@ misleading because there is no comparison set. For route-isolated or
 multi-provider runs, the raw buckets above can be normalized against the best
 provider in that run. Tail latency should receive more weight than averages
 because trading systems care more about bad windows than headline mean latency.
+
+## Cost-Normalized Comparison
+
+For `tpu_quic_only` versus `client_aware`, report both raw landing quality and
+cost-normalized deltas:
+
+- deshred submit-to-observed p50/p90/p99;
+- processed submit-to-observed p50/p90/p99;
+- landed slot delta p50/p90;
+- processed `slot_index` p50/p90/p99;
+- observed success ratio;
+- extra priority fee lamports versus the TPU-only baseline;
+- extra route tip lamports for Jito bundle attempts;
+- milliseconds improved per additional lamport;
+- block-index positions improved per additional lamport.
+
+The cost floor for the generated transaction is:
+
+```text
+base signature fee + ceil(CU limit * CU price microlamports / 1_000_000)
+```
+
+Jito route-added bundle tips are not visible in the transaction itself. Use
+RPCEdge route-attempt telemetry for the actual Jito tip cost when available.
+If only public artifacts are available, label Jito tip cost as unknown or an
+estimate rather than mixing it into exact cost-normalized scores.
 
 ## Matched Observation Reports
 

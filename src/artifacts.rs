@@ -1,4 +1,4 @@
-use crate::adapters::{ProviderAck, ProviderKind};
+use crate::adapters::{ProviderAck, ProviderKind, RouteSelection};
 use chrono::{DateTime, SecondsFormat, Utc};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -22,6 +22,8 @@ pub struct BenchManifest {
     pub compute_unit_price_microlamports: u64,
     pub memo_prefix: String,
     pub max_spend_lamports: Option<u64>,
+    pub route_strategy: Option<String>,
+    pub client_aware_harmonic_cu_price_microlamports: Option<u64>,
     pub providers: Vec<ManifestProvider>,
 }
 
@@ -51,6 +53,13 @@ pub struct BenchSample {
     pub status_code: Option<u16>,
     pub error_class: Option<String>,
     pub error: Option<String>,
+    pub route_policy: Option<String>,
+    pub route_mode: Option<String>,
+    pub selected_routes: Vec<String>,
+    pub leader_client_family: Option<String>,
+    pub compute_unit_limit: u32,
+    pub compute_unit_price_microlamports: u64,
+    pub estimated_spend_lamports: u64,
 }
 
 impl BenchSample {
@@ -61,10 +70,15 @@ impl BenchSample {
         client_started_at: DateTime<Utc>,
         client_finished_at: DateTime<Utc>,
         client_ack_latency_us: u128,
+        route_selection: Option<&RouteSelection>,
+        leader_client_family: Option<String>,
+        compute_unit_limit: u32,
+        compute_unit_price_microlamports: u64,
+        estimated_spend_lamports: u64,
         ack: ProviderAck,
     ) -> Self {
         Self {
-            schema_version: 1,
+            schema_version: 2,
             test_id: test_id.to_string(),
             iteration,
             signature,
@@ -82,6 +96,15 @@ impl BenchSample {
             status_code: ack.status_code,
             error_class: ack.error_class,
             error: ack.error,
+            route_policy: route_selection.map(|selection| selection.policy.clone()),
+            route_mode: route_selection.map(|selection| selection.mode.as_wire().to_string()),
+            selected_routes: route_selection
+                .map(|selection| selection.routes.clone())
+                .unwrap_or_default(),
+            leader_client_family,
+            compute_unit_limit,
+            compute_unit_price_microlamports,
+            estimated_spend_lamports,
         }
     }
 }

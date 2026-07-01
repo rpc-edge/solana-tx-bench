@@ -68,6 +68,8 @@ pub async fn run_benchmark(config: BenchConfig) -> Result<BenchRunOutput> {
         compute_unit_price_microlamports: config.compute_unit_price_microlamports,
         memo_prefix,
         max_spend_lamports: config.max_spend_lamports,
+        route_strategy: None,
+        client_aware_harmonic_cu_price_microlamports: None,
         providers: config
             .providers
             .iter()
@@ -98,6 +100,8 @@ pub async fn run_benchmark(config: BenchConfig) -> Result<BenchRunOutput> {
             signature: tx.signature.to_string(),
             tx_base64: tx.base64.clone(),
             timeout,
+            route_selection: None,
+            leader_client_family: None,
         };
         let futures = providers
             .iter()
@@ -113,6 +117,11 @@ pub async fn run_benchmark(config: BenchConfig) -> Result<BenchRunOutput> {
                 client_started_at,
                 client_finished_at,
                 client_ack_latency_us,
+                None,
+                None,
+                config.compute_unit_limit,
+                config.compute_unit_price_microlamports,
+                tx.estimated_spend_lamports,
                 ack,
             );
             writer.write_sample(&sample)?;

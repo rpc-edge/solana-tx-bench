@@ -80,7 +80,7 @@ pub enum RouteMode {
 }
 
 impl RouteMode {
-    fn as_wire(self) -> &'static str {
+    pub fn as_wire(self) -> &'static str {
         match self {
             Self::ServerDefault => "server_default",
             Self::Only => "only",
@@ -89,7 +89,7 @@ impl RouteMode {
         }
     }
 
-    fn as_relay_mode(self) -> RelayRouteSetMode {
+    pub fn as_relay_mode(self) -> RelayRouteSetMode {
         match self {
             Self::ServerDefault => RelayRouteSetMode::ServerDefault,
             Self::Only => RelayRouteSetMode::Only,
@@ -99,7 +99,7 @@ impl RouteMode {
     }
 }
 
-fn parse_relay_route(route: &str) -> Result<RelayRoute> {
+pub fn parse_relay_route(route: &str) -> Result<RelayRoute> {
     match route.trim() {
         "tpu_quic" | "tpu-quic" => Ok(RelayRoute::TpuQuic),
         "tpu_udp" | "tpu-udp" => Ok(RelayRoute::TpuUdp),
@@ -113,6 +113,37 @@ fn parse_relay_route(route: &str) -> Result<RelayRoute> {
     }
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct RouteSelection {
+    pub policy: String,
+    pub mode: RouteMode,
+    pub routes: Vec<String>,
+}
+
+impl RouteSelection {
+    pub fn only(
+        policy: impl Into<String>,
+        routes: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
+        Self {
+            policy: policy.into(),
+            mode: RouteMode::Only,
+            routes: routes.into_iter().map(Into::into).collect(),
+        }
+    }
+
+    fn as_relay_route_set(&self) -> Result<RelayRouteSet> {
+        Ok(RelayRouteSet {
+            mode: self.mode.as_relay_mode(),
+            routes: self
+                .routes
+                .iter()
+                .map(|route| parse_relay_route(route))
+                .collect::<Result<Vec<_>>>()?,
+        })
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct SendContext {
     pub test_id: String,
@@ -120,6 +151,8 @@ pub struct SendContext {
     pub signature: String,
     pub tx_base64: String,
     pub timeout: Duration,
+    pub route_selection: Option<RouteSelection>,
+    pub leader_client_family: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -343,9 +376,19 @@ impl ProviderAdapter for RpcedgeRouteAwareAdapter {
     }
 
     async fn send_transaction(&self, _tx: &[u8], ctx: &SendContext) -> ProviderAck {
+        let mode = ctx
+            .route_selection
+            .as_ref()
+            .map(|selection| selection.mode)
+            .unwrap_or(self.route_mode);
+        let routes = ctx
+            .route_selection
+            .as_ref()
+            .map(|selection| selection.routes.clone())
+            .unwrap_or_else(|| self.routes.clone());
         let route_set = json!({
-            "mode": self.route_mode.as_wire(),
-            "routes": self.routes,
+            "mode": mode.as_wire(),
+            "routes": routes,
         });
         let body = json!({
             "jsonrpc": "2.0",
@@ -411,9 +454,25 @@ impl ProviderAdapter for RpcedgeQuicRawTxAdapter {
             );
         };
 
-        let route_set = RelayRouteSet {
-            mode: self.route_mode.as_relay_mode(),
-            routes: self.routes.clone(),
+        let route_set = match ctx.route_selection.as_ref() {
+            Some(selection) => match selection.as_relay_route_set() {
+                Ok(route_set) => route_set,
+                Err(err) => {
+                    return ack_error(
+                        self.name(),
+                        self.kind(),
+                        started,
+                        timer,
+                        None,
+                        "invalid_route_selection",
+                        err,
+                    )
+                }
+            },
+            None => RelayRouteSet {
+                mode: self.route_mode.as_relay_mode(),
+                routes: self.routes.clone(),
+            },
         };
         let request_id = Some(format!("{}-{}-{}", ctx.test_id, self.name, ctx.iteration));
         match client

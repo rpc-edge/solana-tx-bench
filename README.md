@@ -83,6 +83,8 @@ cargo run --release -- run-leader-paced \
   --config bench.yaml \
   --duration-seconds 300 \
   --txs-per-leader-run 1 \
+  --leader-run-concurrency 1 \
+  --capture-leader-slots \
   --collect-rpcedge
 ```
 
@@ -90,6 +92,19 @@ This sends at most one transaction for each observed contiguous leader run,
 signing each transaction with a fresh blockhash. It is the preferred first
 benchmark shape because it avoids spammy fixed-rate traffic and naturally
 samples different leaders over the run window.
+
+Set `--txs-per-leader-run N --leader-run-concurrency N` to send multiple
+distinct transactions at the same time for each observed leader run. Keep the
+default concurrency of `1` for baseline reports unless you are intentionally
+testing burst behavior.
+
+`--capture-leader-slots` calls JSON-RPC `getLeaderSlots` before the run and
+writes `leader-slots-snapshot.json` beside the samples. When pointed at
+RPCEdge's RPC gateway, that snapshot can include leader geography, validator
+client, route hints, and historical landing-latency profiles. This makes cohort
+reports reproducible from local artifacts instead of requiring a private
+database join. If `--leader-slots-rpc-url` is omitted, the runner uses the
+`rpc_url` from `bench.yaml`.
 
 For a QUIC-only RPCEdge sender benchmark, configure a single provider:
 
@@ -108,9 +123,36 @@ providers:
 Use `run` for a tiny fixed-count canary, then `run-leader-paced` for the
 leader/cohort benchmark.
 
+To compare TPU-only against leader-client-aware routing, run the same
+leader-paced benchmark twice:
+
+```bash
+# Baseline: static TPU QUIC only from bench.yaml.
+cargo run --release -- run-leader-paced \
+  --config examples/rpcedge-quic-frankfurt.yaml \
+  --duration-seconds 1800 \
+  --capture-leader-slots \
+  --collect-rpcedge
+
+# Strategy: Jito leaders get TPU+Jito bundle, Harmonic leaders get
+# TPU+Harmonic, and all other leaders stay TPU-only.
+cargo run --release -- run-leader-paced \
+  --config examples/rpcedge-quic-frankfurt.yaml \
+  --duration-seconds 1800 \
+  --route-strategy client_aware \
+  --client-aware-harmonic-cu-price-microlamports 300000 \
+  --capture-leader-slots \
+  --collect-rpcedge
+```
+
+Use the same transaction shape and observation endpoints for both runs. Compare
+submit-to-deshred, submit-to-processed, landed slot delta, processed block
+`slot_index`, success ratio, and extra priority/tip cost.
+
 Leader-paced outputs add:
 
 - `leader-sends.ndjson`
+- `leader-slots-snapshot.json`, when `--capture-leader-slots` is enabled
 - `matched-observations.ndjson`
 - `matched-observation-summary.json`
 - `matched-observation-summary.md`
@@ -123,6 +165,10 @@ cargo run -- collect-rpcedge \
   --duration-seconds 120 \
   --min-sources 2
 ```
+
+For end-to-end landing attribution, run either `--collect-rpcedge` during the
+benchmark or run a separate RPCEdge collector for the same `test_id`. Sender ACK
+artifacts alone do not prove shred or processed observation.
 
 Observation summaries:
 
